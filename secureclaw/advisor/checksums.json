@@ -1,0 +1,12 @@
+{
+  "./SKILL.md": "092a5405d58b347f60e0e95e4a6c72ecfeec96d35d06ed1445c6b34943084543",
+  "./configs/injection-patterns.json": "8840ef4f21d8846df3f8f9789d65ec4bff77a3e52418fccbd3d56c4c1d360d2b",
+  "./configs/privacy-rules.json": "be6a436b3413a4a2e5b16e494f4ddbcf426f08a2428644f218409e679dc1e051",
+  "./configs/security-checklist.json": "7f831b2a710bff9a980eb521a03ba011fff910d6c0577802ec292559968abddf",
+  "./scripts/check-advisories.sh": "3e2e7a9d9827ae0f9ee60c757cd9a3b2bf99f66789036f8c419625bdc811d4ea",
+  "./scripts/check-cognitive-integrity.sh": "80600a199797259607103f07239b8ea877b3db3b6f0ddf4a360c4d47ffdc7d1f",
+  "./scripts/install-advisor.sh": "4a57f116d17af36d159164d52b288314562fb258ecae6705c6a9dd197fe3a247",
+  "./scripts/quick-audit.sh": "f56ce71046b123ae81c8013764673475ba894d2a335e1d6f9f8b50359bc321e7",
+  "./scripts/quick-harden.sh": "436fd4060289cb679906001dc0afe82c60bf1bf80263a515f612cb5c34c3fa0a",
+  "./skill.json": "7e2bf85618499109120180bf069c93bbe146ebc487990e014b53281ee5fdfe0e"
+}

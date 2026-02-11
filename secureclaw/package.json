@@ -9,6 +9,7 @@
     "dist/",
     "ioc/",
     "templates/",
+    "advisor/",
     "openclaw.plugin.json",
     "SKILL.md",
     "tools.md",

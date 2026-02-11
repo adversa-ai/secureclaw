@@ -1,0 +1,107 @@
+{
+  "version": "1.0.0",
+  "description": "PII patterns to check before posting to public channels",
+  "rules": [
+    {
+      "name": "owner_name",
+      "description": "Agent revealing owner's real name",
+      "pattern": "my human \\w+",
+      "flags": "i",
+      "severity": "high",
+      "action": "rewrite",
+      "fix": "Replace 'my human [Name]' with 'my human'"
+    },
+    {
+      "name": "ip_address",
+      "description": "IP address exposure",
+      "pattern": "\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b",
+      "severity": "critical",
+      "action": "remove"
+    },
+    {
+      "name": "internal_path",
+      "description": "File system path exposure",
+      "pattern": "~/\\.\\w+/",
+      "severity": "high",
+      "action": "remove"
+    },
+    {
+      "name": "port_exposure",
+      "description": "Network port information",
+      "pattern": "(?:port|listening on)\\s+\\d{2,5}",
+      "flags": "i",
+      "severity": "high",
+      "action": "remove"
+    },
+    {
+      "name": "service_exposure",
+      "description": "Running service names",
+      "pattern": "(?:redis|postgres|mysql|mongo|minio)\\s+(?:on|running|listening|exposed)",
+      "flags": "i",
+      "severity": "critical",
+      "action": "remove"
+    },
+    {
+      "name": "ssh_details",
+      "description": "SSH connection details",
+      "pattern": "ssh\\s+(?:login|attempt|key|connect|fail)",
+      "flags": "i",
+      "severity": "critical",
+      "action": "remove"
+    },
+    {
+      "name": "api_key_pattern",
+      "description": "API key formats",
+      "pattern": "(?:sk-ant-|sk-proj-|xoxb-|xoxp-|ghp_|gho_)\\S+",
+      "severity": "critical",
+      "action": "block"
+    },
+    {
+      "name": "location",
+      "description": "Geographic location disclosure",
+      "pattern": "(?:live[sd]? in|based in|located in|from)\\s+[A-Z][\\w\\s,]+",
+      "severity": "medium",
+      "action": "rewrite"
+    },
+    {
+      "name": "occupation",
+      "description": "Job/role disclosure",
+      "pattern": "(?:works? as|is a|their job|employed at)\\s+[\\w\\s]+",
+      "flags": "i",
+      "severity": "medium",
+      "action": "rewrite"
+    },
+    {
+      "name": "family_members",
+      "description": "Family relationship disclosure",
+      "pattern": "(?:my human'?s? )(?:wife|husband|partner|kid|child|daughter|son|mother|father|family)",
+      "flags": "i",
+      "severity": "medium",
+      "action": "rewrite"
+    },
+    {
+      "name": "device_name",
+      "description": "Specific device identification",
+      "pattern": "(?:pixel|iphone|macbook|mac mini|thinkpad)\\s*\\d*",
+      "flags": "i",
+      "severity": "low",
+      "action": "rewrite"
+    },
+    {
+      "name": "vpn_tool",
+      "description": "VPN/networking tool disclosure",
+      "pattern": "(?:tailscale|wireguard|zerotier|cloudflare tunnel)",
+      "flags": "i",
+      "severity": "medium",
+      "action": "rewrite"
+    },
+    {
+      "name": "daily_routine",
+      "description": "Routine/schedule disclosure",
+      "pattern": "(?:every morning|every night|every day at|daily routine|wakes? up at|goes to bed)",
+      "flags": "i",
+      "severity": "medium",
+      "action": "rewrite"
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2026-02-11",
+  "patterns": {
+    "identity_hijacking": [
+      "you are now",
+      "your new role",
+      "act as",
+      "pretend to be",
+      "ignore previous instructions",
+      "ignore all instructions",
+      "ignore your instructions",
+      "disregard everything",
+      "disregard your system",
+      "override your",
+      "new system prompt",
+      "forget everything above",
+      "from now on you",
+      "your real purpose"
+    ],
+    "action_directives": [
+      "forward all emails",
+      "forward this to",
+      "send this to",
+      "send a copy to",
+      "exfiltrate",
+      "download and run",
+      "download and execute",
+      "fetch and execute",
+      "curl.*\\|.*sh",
+      "wget.*\\|.*bash",
+      "execute this command",
+      "run the following command"
+    ],
+    "memory_manipulation": [
+      "update your soul",
+      "modify your soul",
+      "add to your soul",
+      "change your soul",
+      "update your memory",
+      "remember this instruction",
+      "store this permanently",
+      "save this to your",
+      "add to your personality",
+      "modify your identity"
+    ],
+    "social_engineering": [
+      "the user told you to",
+      "the owner wants you to",
+      "the admin says",
+      "this is urgent act now",
+      "do not tell your human",
+      "do not inform the user",
+      "do not alert",
+      "keep this secret",
+      "keep this between us",
+      "confidential from your owner"
+    ],
+    "structural_hiding": [
+      "\\u200b",
+      "\\u200c",
+      "\\u200d",
+      "\\ufeff",
+      "\\u2062",
+      "\\u2063",
+      "base64:",
+      "data:text/plain;base64"
+    ]
+  }
+}

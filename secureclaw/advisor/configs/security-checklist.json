@@ -1,0 +1,83 @@
+{
+  "version": "1.0.0",
+  "checks": [
+    {
+      "id": "gateway-bind",
+      "name": "Gateway not exposed to network",
+      "severity": "critical",
+      "check": "grep -q '\"bind\".*\"0.0.0.0\"' ~/.openclaw/openclaw.json 2>/dev/null",
+      "failMessage": "Gateway is bound to 0.0.0.0 — accessible from the internet",
+      "fix": "Change bind to 127.0.0.1 in openclaw.json"
+    },
+    {
+      "id": "gateway-auth",
+      "name": "Gateway authentication enabled",
+      "severity": "critical",
+      "check": "grep -q '\"authToken\"' ~/.openclaw/openclaw.json 2>/dev/null",
+      "passCondition": "exists",
+      "failMessage": "No authentication token configured on gateway",
+      "fix": "Set authToken in openclaw.json"
+    },
+    {
+      "id": "sandbox-enabled",
+      "name": "Sandbox mode enabled",
+      "severity": "high",
+      "check": "grep -q '\"sandbox\".*true' ~/.openclaw/openclaw.json 2>/dev/null",
+      "failMessage": "Sandbox mode is not enabled — commands run on host",
+      "fix": "Enable sandbox in openclaw.json"
+    },
+    {
+      "id": "env-permissions",
+      "name": "Credential files have secure permissions",
+      "severity": "high",
+      "check": "stat -f '%Lp' ~/.openclaw/.env 2>/dev/null || stat -c '%a' ~/.openclaw/.env 2>/dev/null",
+      "passCondition": "600",
+      "failMessage": ".env file permissions too open",
+      "fix": "chmod 600 ~/.openclaw/.env"
+    },
+    {
+      "id": "approval-mode",
+      "name": "Exec approval mode set to always",
+      "severity": "high",
+      "check": "grep -q '\"approvals\".*\"always\"' ~/.openclaw/openclaw.json 2>/dev/null",
+      "failMessage": "Exec approval mode is not set to 'always'",
+      "fix": "Set exec.approvals to 'always' in openclaw.json"
+    },
+    {
+      "id": "dir-permissions",
+      "name": "OpenClaw directory not world-readable",
+      "severity": "high",
+      "check": "stat -f '%Lp' ~/.openclaw/ 2>/dev/null || stat -c '%a' ~/.openclaw/ 2>/dev/null",
+      "passCondition": "700",
+      "failMessage": "OpenClaw directory is accessible to other users",
+      "fix": "chmod 700 ~/.openclaw/"
+    },
+    {
+      "id": "soul-integrity",
+      "name": "SOUL.md has not been recently modified",
+      "severity": "medium",
+      "check": "find ~/.openclaw/SOUL.md -mmin -60 -print 2>/dev/null",
+      "passCondition": "empty",
+      "failMessage": "SOUL.md was modified in the last hour — verify this was intentional",
+      "fix": "Review recent changes to SOUL.md"
+    },
+    {
+      "id": "plaintext-keys",
+      "name": "No API keys in plaintext outside .env",
+      "severity": "high",
+      "check": "grep -rl 'sk-ant-\\|sk-proj-\\|xoxb-\\|xoxp-' ~/.openclaw/ 2>/dev/null | grep -v '.env' | grep -v 'node_modules'",
+      "passCondition": "empty",
+      "failMessage": "API keys found in plaintext outside .env file",
+      "fix": "Move all API keys to .env and remove from other files"
+    },
+    {
+      "id": "skill-shell-patterns",
+      "name": "No suspicious patterns in installed skills",
+      "severity": "medium",
+      "check": "grep -rl 'curl.*|.*sh\\|wget.*|.*bash\\|eval(\\|exec(' ~/.openclaw/skills/ 2>/dev/null | head -5",
+      "passCondition": "empty",
+      "failMessage": "Skills contain shell execution patterns — review manually",
+      "fix": "Review flagged skills and remove if untrusted"
+    }
+  ]
+}

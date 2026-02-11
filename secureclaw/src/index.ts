@@ -1,6 +1,8 @@
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as fs from 'node:fs/promises';
+import { execSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { runAudit } from './auditor.js';
 import { harden, rollback } from './hardener.js';
 import { formatConsoleReport } from './reporters/console-reporter.js';
@@ -16,6 +18,9 @@ import type {
   SecureClawPlugin,
   OpenClawConfig,
 } from './types.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const VERSION = '1.0.0';
 
@@ -187,6 +192,15 @@ const secureClawPlugin = {
           `[SecureClaw] WARNING: ${report.summary.critical} CRITICAL finding(s) detected!`,
         );
       }
+
+      // Check for advisor skill
+      const advisorPath = path.join(stateDir, 'skills', 'secureclaw-advisor', 'SKILL.md');
+      try {
+        await fs.access(advisorPath);
+        api.logger.info('[SecureClaw] Advisor skill detected — plugin provides enforcement layer');
+      } catch {
+        // Advisor not installed, that's fine
+      }
     });
 
     // ── CLI Commands ───────────────────────────────────────────
@@ -281,6 +295,38 @@ const secureClawPlugin = {
           console.log(`Recent Alerts: ${status.alerts.length}`);
           for (const alert of status.alerts.slice(-5)) {
             console.log(`  [${alert.severity}] ${alert.message}`);
+          }
+        });
+
+      const adv = sc.command('advisor')
+        .description('SecureClaw Advisor skill management');
+
+      adv.command('install')
+        .description('Install the SecureClaw Advisor skill')
+        .action(async () => {
+          const installScript = path.join(__dirname, '..', 'advisor', 'scripts', 'install-advisor.sh');
+          try {
+            execSync(`bash "${installScript}"`, { stdio: 'inherit' });
+          } catch (err) {
+            console.error('Failed to install advisor:', (err as Error).message);
+          }
+        });
+
+      adv.command('audit')
+        .description('Run advisor quick audit')
+        .action(async () => {
+          const advStateDir = process.env['OPENCLAW_STATE_DIR'] ?? path.join(os.homedir(), '.openclaw');
+          // Try installed skill location first, fall back to bundled
+          let scriptDir = path.join(advStateDir, 'skills', 'secureclaw-advisor', 'scripts');
+          try {
+            await fs.access(path.join(scriptDir, 'quick-audit.sh'));
+          } catch {
+            scriptDir = path.join(__dirname, '..', 'advisor', 'scripts');
+          }
+          try {
+            execSync(`bash "${path.join(scriptDir, 'quick-audit.sh')}"`, { stdio: 'inherit' });
+          } catch {
+            // Script exits non-zero if checks fail — expected
           }
         });
     }, { commands: ['secureclaw'] });
@@ -388,6 +434,28 @@ export const legacyPlugin: SecureClawPlugin = {
     'secureclaw cost-report': async () => {
       const status = costMonitor.status();
       console.log(`Cost Monitor: ${status.running ? 'running' : 'stopped'}`);
+    },
+    'secureclaw advisor install': async () => {
+      const installScript = path.join(__dirname, '..', 'advisor', 'scripts', 'install-advisor.sh');
+      try {
+        execSync(`bash "${installScript}"`, { stdio: 'inherit' });
+      } catch (err) {
+        console.error('Failed to install advisor:', (err as Error).message);
+      }
+    },
+    'secureclaw advisor audit': async () => {
+      const advStateDir = process.env['OPENCLAW_STATE_DIR'] ?? path.join(os.homedir(), '.openclaw');
+      let scriptDir = path.join(advStateDir, 'skills', 'secureclaw-advisor', 'scripts');
+      try {
+        await fs.access(path.join(scriptDir, 'quick-audit.sh'));
+      } catch {
+        scriptDir = path.join(__dirname, '..', 'advisor', 'scripts');
+      }
+      try {
+        execSync(`bash "${path.join(scriptDir, 'quick-audit.sh')}"`, { stdio: 'inherit' });
+      } catch {
+        // Script exits non-zero if checks fail — expected
+      }
     },
   },
   tools: ['security_audit', 'security_status', 'skill_scan', 'cost_report'],
