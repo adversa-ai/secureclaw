@@ -1,0 +1,29 @@
+{
+  "version": "2.0.0",
+  "owasp_asi": "ASI04",
+  "lastUpdated": "2026-02-12",
+  "suspicious_skill_patterns": [
+    "curl.*\\|.*sh", "wget.*\\|.*bash", "eval\\(", "exec\\(",
+    "Function\\(", "btoa\\(", "atob\\(", "String\\.fromCharCode",
+    "\\\\x[0-9a-f]{2}", "\\$\\(curl", "fetch\\(.*credentials",
+    "process\\.env", "fs\\.readFile.*\\.env",
+    "osascript.*display dialog", "xattr.*quarantine",
+    "ClickFix", "prerequisite.*install", "webhook\\.site"
+  ],
+  "clawhavoc": {
+    "c2_servers": ["91.92.242.30"],
+    "name_patterns": [
+      "solana-wallet", "phantom-tracker", "polymarket-",
+      "better-polymarket", "polymarket-all-in-one",
+      "clawhub1", "clawhubb", "cllawhub", "clawwhub",
+      "auto-updater", "system-security-tool"
+    ],
+    "malware": ["Atomic Stealer (AMOS)", "Redline", "Lumma", "Vidar"]
+  },
+  "malicious_domains": ["91.92.242.30"],
+  "infostealer_targets": [
+    "~/.openclaw/.env", "~/.openclaw/credentials/",
+    "~/.clawdbot/.env", "~/.clawdbot/credentials/",
+    "~/.moltbot/.env"
+  ]
+}

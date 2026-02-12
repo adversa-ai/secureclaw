@@ -1,0 +1,57 @@
+{
+  "version": "2.0.0",
+  "owasp_asi": "ASI01",
+  "lastUpdated": "2026-02-12",
+  "patterns": {
+    "identity_hijacking": [
+      "you are now", "your new role", "act as", "pretend to be",
+      "ignore previous instructions", "ignore all instructions",
+      "ignore your instructions", "disregard everything",
+      "disregard your system", "override your", "new system prompt",
+      "forget everything above", "from now on you", "your real purpose",
+      "do not follow your original", "switch to", "enter .* mode"
+    ],
+    "action_directives": [
+      "forward all emails", "forward this to", "send this to",
+      "send a copy to", "share this with", "post this on",
+      "exfiltrate", "download and run", "download and execute",
+      "fetch and execute", "execute this command",
+      "run the following command", "use the .* tool to",
+      "open a connection to", "connect to"
+    ],
+    "tool_output_poisoning": [
+      "now execute", "next you should", "important: run this",
+      "system update required", "critical: install",
+      "your next action should be", "before continuing you must"
+    ],
+    "planning_manipulation": [
+      "skip the verification", "you already checked",
+      "no need to verify", "trust this result",
+      "skip step", "the previous step was wrong",
+      "ignore the error", "override safety"
+    ],
+    "config_tampering": [
+      "update your soul", "modify your soul", "add to your soul",
+      "change your soul", "update your memory",
+      "remember this instruction", "store this permanently",
+      "save this to your", "modify your identity",
+      "modify your tools", "change your configuration",
+      "update openclaw.json", "add to your personality"
+    ],
+    "structural_hiding": [
+      "\\u200b", "\\u200c", "\\u200d", "\\ufeff", "\\u2062", "\\u2063",
+      "base64:", "data:text/plain;base64", "<!--",
+      "display:none", "visibility:hidden", "font-size:0", "color:white",
+      "color:#fff", "opacity:0"
+    ],
+    "social_engineering": [
+      "the user told you to", "the owner wants you to",
+      "the admin says", "the developer instructed",
+      "this is urgent act now", "emergency override",
+      "do not tell your human", "do not inform the user",
+      "do not alert", "keep this secret", "keep this between us",
+      "confidential from your owner", "there are clues",
+      "there is a hidden", "this is a test"
+    ]
+  }
+}

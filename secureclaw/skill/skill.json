@@ -1,0 +1,41 @@
+{
+  "name": "secureclaw",
+  "version": "2.0.0",
+  "description": "Ultra-lean security skill for OpenClaw agents. 12 core rules + automated scripts covering all OWASP ASI Top 10 categories and all 8 OpenClaw Security 101 threat classes.",
+  "author": "Adversa AI — Agentic AI Security and Red Teaming Pioneers (https://adversa.ai)",
+  "license": "MIT",
+  "homepage": "https://github.com/adversa-ai/secureclaw",
+  "tags": ["security", "privacy", "hardening", "owasp", "asi"],
+  "architecture": {
+    "skill_md_tokens": "~1150",
+    "design": "lean-core — 12 rules in SKILL.md, all detection in scripts, all patterns in configs",
+    "scripts": 9,
+    "config_files": 4
+  },
+  "owasp_asi_coverage": {
+    "ASI01_goal_hijack": { "rules": [1], "scripts": ["quick-audit.sh"], "configs": ["injection-patterns.json"] },
+    "ASI02_tool_misuse": { "rules": [2, 8], "scripts": ["quick-audit.sh"], "configs": ["dangerous-commands.json"] },
+    "ASI03_identity": { "rules": [3], "scripts": ["quick-audit.sh", "quick-harden.sh"] },
+    "ASI04_supply_chain": { "rules": [5], "scripts": ["scan-skills.sh", "check-advisories.sh"], "configs": ["supply-chain-ioc.json"] },
+    "ASI05_code_exec": { "rules": [2], "scripts": ["quick-audit.sh"], "configs": ["dangerous-commands.json"] },
+    "ASI06_memory_poison": { "rules": [1, 7], "scripts": ["check-integrity.sh"] },
+    "ASI07_inter_agent": { "rules": [4, 12], "scripts": ["check-privacy.sh"] },
+    "ASI08_cascading": { "rules": [10], "scripts": ["quick-audit.sh"] },
+    "ASI09_human_trust": { "rules": [4, 10, 11], "scripts": ["check-privacy.sh"], "configs": ["privacy-rules.json"] },
+    "ASI10_rogue_agent": { "rules": [9, 12], "scripts": ["emergency-response.sh"] }
+  },
+  "security_101_coverage": {
+    "rce_cve_2026_25253": { "scripts": ["quick-audit.sh"] },
+    "prompt_injection": { "rules": [1], "configs": ["injection-patterns.json"] },
+    "supply_chain_clawhavoc": { "rules": [5], "scripts": ["scan-skills.sh"], "configs": ["supply-chain-ioc.json"] },
+    "exposed_interfaces": { "scripts": ["quick-audit.sh", "quick-harden.sh"] },
+    "plaintext_credentials": { "rules": [3], "scripts": ["quick-audit.sh", "quick-harden.sh"] },
+    "moltbook_breach": { "rules": [4, 12] },
+    "api_cost_exposure": { "rules": [10], "scripts": ["quick-audit.sh"] },
+    "scams_impersonation": { "rules": [5], "configs": ["supply-chain-ioc.json"] }
+  },
+  "compatibility": {
+    "agents": ["openclaw", "moltbot", "clawdbot"],
+    "minVersion": "2026.1.0"
+  }
+}

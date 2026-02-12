@@ -9,7 +9,7 @@
     "dist/",
     "ioc/",
     "templates/",
-    "advisor/",
+    "skill/",
     "openclaw.plugin.json",
     "SKILL.md",
     "tools.md",
@@ -31,7 +31,7 @@
     "owasp",
     "plugin"
   ],
-  "author": "adversa-ai",
+  "author": "Adversa AI — Agentic AI Security and Red Teaming Pioneers (https://adversa.ai)",
   "license": "MIT",
   "repository": {
     "type": "git",

@@ -5,7 +5,11 @@
 src/auditor.ts
 src/hardening/credential-hardening.ts
 
-# Advisor skill contains grep search patterns and regex rules for key detection
-advisor/scripts/quick-audit.sh
-advisor/configs/privacy-rules.json
-advisor/configs/security-checklist.json
+# Skill contains grep search patterns and regex rules for key detection
+skill/scripts/quick-audit.sh
+skill/scripts/scan-skills.sh
+skill/scripts/check-privacy.sh
+skill/configs/privacy-rules.json
+skill/configs/injection-patterns.json
+skill/configs/supply-chain-ioc.json
+skill/configs/dangerous-commands.json

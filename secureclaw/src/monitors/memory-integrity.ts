@@ -174,7 +174,7 @@ export const memoryIntegrityMonitor: Monitor = {
 
     watcher.on('change', (filePath: string) => {
       lastCheck = new Date().toISOString();
-      checkFile(filePath, stateDir);
+      checkFile(filePath, stateDir).catch(() => {});
     });
 
     watcher.on('add', (filePath: string) => {
@@ -186,7 +186,7 @@ export const memoryIntegrityMonitor: Monitor = {
         message: `New memory file created: ${path.basename(filePath)}`,
         details: `Path: ${filePath}`,
       });
-      checkFile(filePath, stateDir);
+      checkFile(filePath, stateDir).catch(() => {});
     });
 
     running = true;

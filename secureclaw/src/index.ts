@@ -183,23 +183,27 @@ const secureClawPlugin = {
 
     // ── Lifecycle Hooks ────────────────────────────────────────
     api.on('gateway_start', async () => {
-      const stateDir = process.env['OPENCLAW_STATE_DIR'] ?? path.join(os.homedir(), '.openclaw');
-      const ctx = await createAuditContext(stateDir, api.config);
-      const report = await runAudit({ context: ctx });
-      api.logger.info(`[SecureClaw] Security score: ${report.score}/100`);
-      if (report.summary.critical > 0) {
-        api.logger.warn(
-          `[SecureClaw] WARNING: ${report.summary.critical} CRITICAL finding(s) detected!`,
-        );
-      }
-
-      // Check for advisor skill
-      const advisorPath = path.join(stateDir, 'skills', 'secureclaw-advisor', 'SKILL.md');
       try {
-        await fs.access(advisorPath);
-        api.logger.info('[SecureClaw] Advisor skill detected — plugin provides enforcement layer');
-      } catch {
-        // Advisor not installed, that's fine
+        const stateDir = process.env['OPENCLAW_STATE_DIR'] ?? path.join(os.homedir(), '.openclaw');
+        const ctx = await createAuditContext(stateDir, api.config);
+        const report = await runAudit({ context: ctx });
+        api.logger.info(`[SecureClaw] Security score: ${report.score}/100`);
+        if (report.summary.critical > 0) {
+          api.logger.warn(
+            `[SecureClaw] WARNING: ${report.summary.critical} CRITICAL finding(s) detected!`,
+          );
+        }
+
+        // Check for SecureClaw skill
+        const skillPath = path.join(stateDir, 'skills', 'secureclaw', 'SKILL.md');
+        try {
+          await fs.access(skillPath);
+          api.logger.info('[SecureClaw] Skill detected — plugin provides enforcement layer');
+        } catch {
+          // Skill not installed, that's fine
+        }
+      } catch (err) {
+        api.logger.error(`[SecureClaw] Startup audit failed: ${(err as Error).message}`);
       }
     });
 
@@ -298,30 +302,30 @@ const secureClawPlugin = {
           }
         });
 
-      const adv = sc.command('advisor')
-        .description('SecureClaw Advisor skill management');
+      const sk = sc.command('skill')
+        .description('SecureClaw skill management');
 
-      adv.command('install')
-        .description('Install the SecureClaw Advisor skill')
+      sk.command('install')
+        .description('Install the SecureClaw skill')
         .action(async () => {
-          const installScript = path.join(__dirname, '..', 'advisor', 'scripts', 'install-advisor.sh');
+          const installScript = path.join(__dirname, '..', 'skill', 'scripts', 'install.sh');
           try {
             execSync(`bash "${installScript}"`, { stdio: 'inherit' });
           } catch (err) {
-            console.error('Failed to install advisor:', (err as Error).message);
+            console.error('Failed to install skill:', (err as Error).message);
           }
         });
 
-      adv.command('audit')
-        .description('Run advisor quick audit')
+      sk.command('audit')
+        .description('Run skill quick audit')
         .action(async () => {
-          const advStateDir = process.env['OPENCLAW_STATE_DIR'] ?? path.join(os.homedir(), '.openclaw');
+          const skStateDir = process.env['OPENCLAW_STATE_DIR'] ?? path.join(os.homedir(), '.openclaw');
           // Try installed skill location first, fall back to bundled
-          let scriptDir = path.join(advStateDir, 'skills', 'secureclaw-advisor', 'scripts');
+          let scriptDir = path.join(skStateDir, 'skills', 'secureclaw', 'scripts');
           try {
             await fs.access(path.join(scriptDir, 'quick-audit.sh'));
           } catch {
-            scriptDir = path.join(__dirname, '..', 'advisor', 'scripts');
+            scriptDir = path.join(__dirname, '..', 'skill', 'scripts');
           }
           try {
             execSync(`bash "${path.join(scriptDir, 'quick-audit.sh')}"`, { stdio: 'inherit' });
@@ -435,26 +439,42 @@ export const legacyPlugin: SecureClawPlugin = {
       const status = costMonitor.status();
       console.log(`Cost Monitor: ${status.running ? 'running' : 'stopped'}`);
     },
-    'secureclaw advisor install': async () => {
-      const installScript = path.join(__dirname, '..', 'advisor', 'scripts', 'install-advisor.sh');
+    'secureclaw skill install': async () => {
+      const installScript = path.join(__dirname, '..', 'skill', 'scripts', 'install.sh');
       try {
         execSync(`bash "${installScript}"`, { stdio: 'inherit' });
       } catch (err) {
-        console.error('Failed to install advisor:', (err as Error).message);
+        console.error('Failed to install skill:', (err as Error).message);
       }
     },
-    'secureclaw advisor audit': async () => {
-      const advStateDir = process.env['OPENCLAW_STATE_DIR'] ?? path.join(os.homedir(), '.openclaw');
-      let scriptDir = path.join(advStateDir, 'skills', 'secureclaw-advisor', 'scripts');
+    'secureclaw skill audit': async () => {
+      const skStateDir = process.env['OPENCLAW_STATE_DIR'] ?? path.join(os.homedir(), '.openclaw');
+      let scriptDir = path.join(skStateDir, 'skills', 'secureclaw', 'scripts');
       try {
         await fs.access(path.join(scriptDir, 'quick-audit.sh'));
       } catch {
-        scriptDir = path.join(__dirname, '..', 'advisor', 'scripts');
+        scriptDir = path.join(__dirname, '..', 'skill', 'scripts');
       }
       try {
         execSync(`bash "${path.join(scriptDir, 'quick-audit.sh')}"`, { stdio: 'inherit' });
       } catch {
         // Script exits non-zero if checks fail — expected
+      }
+    },
+    'secureclaw skill update': async () => {
+      const installScript = path.join(__dirname, '..', 'skill', 'scripts', 'install.sh');
+      try {
+        execSync(`bash "${installScript}"`, { stdio: 'inherit' });
+      } catch (err) {
+        console.error('Failed to update skill:', (err as Error).message);
+      }
+    },
+    'secureclaw skill uninstall': async () => {
+      const uninstallScript = path.join(__dirname, '..', 'skill', 'scripts', 'uninstall.sh');
+      try {
+        execSync(`bash "${uninstallScript}" --force`, { stdio: 'inherit' });
+      } catch (err) {
+        console.error('Failed to uninstall skill:', (err as Error).message);
       }
     },
   },

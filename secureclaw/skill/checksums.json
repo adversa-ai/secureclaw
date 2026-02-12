@@ -1,0 +1,18 @@
+{
+  "./README.md": "cb1ed95ccdd647c30f6e120a46d7b4e8514c59decf4eb24a3e16b9cef55ffe5e",
+  "./SKILL.md": "5469d7eb14cdeabe1492b527c7e3edd08850c3c4045c63083557e62ef1fa2a57",
+  "./configs/dangerous-commands.json": "b9c0be69df0ddb7bd2e9eade54e37212f62f15a9f9a28777998e9e07cf1d6f7e",
+  "./configs/injection-patterns.json": "a8e6391d793861280a704ccdcd4a8fea1ae8439b558768535c7753549429753c",
+  "./configs/privacy-rules.json": "961683298304a40534f63a2aec01c6b843099dcd45e867db643a8252c0a8892e",
+  "./configs/supply-chain-ioc.json": "84f603dbd5858b28040779630c2ec21791c02e56aa95c8c403461496d3a6a68f",
+  "./scripts/check-advisories.sh": "a25dbaa762e0e38a1907f17ed57d820cbb854cdee1da306eb594083057d10d54",
+  "./scripts/check-integrity.sh": "d0278ca3ca5bcd8312218590d335b7c99401a2e01052733fd065f998838674ee",
+  "./scripts/check-privacy.sh": "c9943e7edb11b01c1907278443032197a778d2db0734908741c2d1d019fcf4ca",
+  "./scripts/emergency-response.sh": "e56c3d014584140089a4d4e8fd2d856bff207f6dc2d1e6bf36e241c127429af0",
+  "./scripts/install.sh": "318dfc941897d74c07b305349ab140ca3ff7575be49633d03d94c6a6196abfd6",
+  "./scripts/quick-audit.sh": "aaf19fedbbe2489a40da10c01b7fbcecceab1bda934c6f1377f2bcf8ca182901",
+  "./scripts/quick-harden.sh": "96a747ac3a026a72e40e3bd1de50e92c62b7bb445a8a000f8735910d06f8efc5",
+  "./scripts/scan-skills.sh": "4bec199033c75b803561756c0d655eea1957f9dd5a731d62d62010b3693a6a49",
+  "./scripts/uninstall.sh": "b058041cdabfa13ce0f482dad728018184d989e8a3acd644c5ced8f4357bff71",
+  "./skill.json": "5b1244a30f2cf83e736b4975186291b29b50cabcb9a4623fc535d5fc1035afbc"
+}

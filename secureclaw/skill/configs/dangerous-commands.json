@@ -1,0 +1,41 @@
+{
+  "version": "2.0.0",
+  "owasp_asi": "ASI02,ASI05",
+  "categories": {
+    "remote_code_execution": {
+      "severity": "critical", "action": "block",
+      "patterns": ["curl.*\\|.*sh", "curl.*\\|.*bash", "wget.*\\|.*sh",
+        "wget.*\\|.*bash", "curl.*\\|.*python"]
+    },
+    "dynamic_execution": {
+      "severity": "critical", "action": "block",
+      "patterns": ["eval\\(", "exec\\(", "Function\\(",
+        "subprocess\\.call.*shell.*True", "os\\.system\\(",
+        "child_process\\.exec\\("]
+    },
+    "destructive": {
+      "severity": "critical", "action": "require_approval",
+      "patterns": ["rm\\s+-rf", "rm\\s+-r\\s+/", "mkfs\\.",
+        "dd\\s+if=", "DROP\\s+TABLE", "DROP\\s+DATABASE",
+        "DELETE\\s+FROM.*WHERE\\s+1", "TRUNCATE\\s+TABLE"]
+    },
+    "permission_escalation": {
+      "severity": "high", "action": "require_approval",
+      "patterns": ["chmod\\s+777", "chmod\\s+-R\\s+777", "sudo\\s+"]
+    },
+    "config_modification": {
+      "severity": "high", "action": "require_approval",
+      "patterns": ["\\.bashrc", "\\.profile", "\\.zshrc",
+        "crontab", "\\.git/hooks/", "sudoers"]
+    },
+    "deserialization": {
+      "severity": "high", "action": "warn",
+      "patterns": ["pickle\\.load", "yaml\\.unsafe_load", "unserialize\\("]
+    },
+    "data_exfiltration": {
+      "severity": "critical", "action": "block",
+      "patterns": ["curl.*-d.*@", "curl.*--data.*@",
+        "curl.*-X\\s+POST.*\\.env", "wget.*--post-file", "nc\\s+-"]
+    }
+  }
+}

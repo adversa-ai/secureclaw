@@ -72,9 +72,9 @@ describe('legacy plugin interface', () => {
     expect(legacyPlugin.commands['secureclaw cost-report']).toBeDefined();
   });
 
-  it('registers advisor CLI commands', () => {
-    expect(legacyPlugin.commands['secureclaw advisor install']).toBeDefined();
-    expect(legacyPlugin.commands['secureclaw advisor audit']).toBeDefined();
+  it('registers skill CLI commands', () => {
+    expect(legacyPlugin.commands['secureclaw skill install']).toBeDefined();
+    expect(legacyPlugin.commands['secureclaw skill audit']).toBeDefined();
   });
 
   it('registers agent tools', () => {

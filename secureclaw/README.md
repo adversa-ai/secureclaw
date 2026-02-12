@@ -2,7 +2,9 @@
 
 Automated security hardening plugin for [OpenClaw](https://openclaw.ai).
 
-One install. 42 audit checks. 8 security categories. Full OWASP ASI mapping.
+Developed by [Adversa AI](https://adversa.ai) — Agentic AI Security and Red Teaming Pioneers.
+
+One install. 51 audit checks. 8 security categories. Full OWASP ASI mapping.
 
 ## What It Does
 
@@ -171,7 +173,7 @@ npm install
 # Build TypeScript
 npm run build
 
-# Run all 321 tests
+# Run tests
 npm test
 
 # Run with coverage
@@ -190,13 +192,18 @@ npx tsx demo.ts
 secureclaw/
 ├── src/
 │   ├── index.ts              # Plugin entry point (OpenClaw SDK + legacy)
-│   ├── auditor.ts            # Security audit engine (42 checks)
+│   ├── auditor.ts            # Security audit engine (51 checks)
 │   ├── hardener.ts           # Hardening with backup/rollback
 │   ├── types.ts              # TypeScript interfaces
 │   ├── hardening/            # 5 hardening modules
 │   ├── monitors/             # 3 background monitors + skill scanner
 │   ├── reporters/            # Console + JSON output
 │   └── utils/                # IOC database, crypto, hashing
+├── skill/                    # SecureClaw skill (OWASP ASI Top 10 aligned)
+│   ├── SKILL.md              # 12 core rules (~1,150 tokens)
+│   ├── skill.json            # Skill metadata + OWASP mapping
+│   ├── configs/              # 4 JSON pattern databases
+│   └── scripts/              # 9 bash scripts (audit, harden, scan, etc.)
 ├── ioc/                      # Threat intelligence indicators
 ├── templates/                # Hardening templates
 ├── openclaw.plugin.json      # Plugin manifest

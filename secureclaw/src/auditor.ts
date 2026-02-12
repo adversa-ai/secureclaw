@@ -588,8 +588,10 @@ export async function auditCredentials(ctx: AuditContext): Promise<AuditFinding[
 
 async function scanForApiKeys(ctx: AuditContext): Promise<string[]> {
   const matches: string[] = [];
+  const MAX_DEPTH = 5;
 
-  async function scanDir(dir: string): Promise<void> {
+  async function scanDir(dir: string, depth: number): Promise<void> {
+    if (depth > MAX_DEPTH) return;
     let entries: string[];
     try {
       entries = await ctx.listDir(dir);
@@ -606,22 +608,19 @@ async function scanForApiKeys(ctx: AuditContext): Promise<string[]> {
       }
       // Recurse into subdirectories (but skip .secureclaw and node_modules)
       if (!entry.startsWith('.secureclaw') && entry !== 'node_modules') {
-        const exists = await ctx.fileExists(fullPath);
-        if (exists) {
-          try {
-            const children = await ctx.listDir(fullPath);
-            if (children.length >= 0) {
-              await scanDir(fullPath);
-            }
-          } catch {
-            // Not a directory, skip
+        try {
+          const children = await ctx.listDir(fullPath);
+          if (children.length > 0) {
+            await scanDir(fullPath, depth + 1);
           }
+        } catch {
+          // Not a directory, skip
         }
       }
     }
   }
 
-  await scanDir(ctx.stateDir);
+  await scanDir(ctx.stateDir, 0);
   return matches;
 }
 
