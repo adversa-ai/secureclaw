@@ -22,7 +22,7 @@ import type {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const VERSION = '1.0.0';
+const VERSION = '2.0.0';
 
 /**
  * Create a real AuditContext from a state directory and config.

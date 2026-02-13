@@ -1446,7 +1446,7 @@ export async function runAudit(options: AuditOptions = {}): Promise<AuditReport>
   return {
     timestamp: new Date().toISOString(),
     openclawVersion: ctx.openclawVersion,
-    secureclawVersion: '1.0.0',
+    secureclawVersion: '2.0.0',
     platform: ctx.platform,
     deploymentMode: ctx.deploymentMode,
     score,

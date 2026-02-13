@@ -13,8 +13,8 @@ describe('OpenClaw SDK plugin registration', () => {
     expect(plugin.name).toBe('SecureClaw');
   });
 
-  it('has version 1.0.0', () => {
-    expect(plugin.version).toBe('1.0.0');
+  it('has version 2.0.0', () => {
+    expect(plugin.version).toBe('2.0.0');
   });
 
   it('has a description', () => {
@@ -47,8 +47,8 @@ describe('legacy plugin interface', () => {
     expect(legacyPlugin.name).toBe('secureclaw');
   });
 
-  it('has version 1.0.0', () => {
-    expect(legacyPlugin.version).toBe('1.0.0');
+  it('has version 2.0.0', () => {
+    expect(legacyPlugin.version).toBe('2.0.0');
   });
 
   it('has a description', () => {
