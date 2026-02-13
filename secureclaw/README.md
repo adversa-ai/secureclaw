@@ -104,22 +104,20 @@ All scripts auto-detect which agent is installed by checking these directories i
 
 ## 3. Installation
 
-### Option A: Plugin from npm (recommended)
+### Option A: Skill only (recommended)
 
-This installs both the plugin and the skill:
-
-```sh
-openclaw plugins install @openclaw/secureclaw
-```
-
-Verify:
+The fastest way to get SecureClaw running. No Node.js, no build step — just bash and standard Unix tools:
 
 ```sh
-openclaw plugins list
-openclaw plugins doctor
+git clone https://github.com/adversa-ai/secureclaw.git
+bash secureclaw/secureclaw/skill/scripts/install.sh
 ```
+
+This installs the 12 behavioral rules, 9 scripts, and 4 pattern databases to your agent's skills directory. If a workspace directory exists (`~/.openclaw/workspace/`), the installer also copies the skill there and registers it in `AGENTS.md` and `TOOLS.md` for automatic agent discovery.
 
 ### Option B: Plugin from source
+
+For the full TypeScript plugin with 51 audit checks, background monitors, and CLI integration:
 
 ```sh
 git clone https://github.com/adversa-ai/secureclaw.git
@@ -129,24 +127,26 @@ npm run build
 openclaw plugins install -l .
 ```
 
-### Option C: Skill only (no plugin, no Node.js)
+The plugin includes the skill. After installing, run `openclaw secureclaw skill install` to deploy the skill files to your agent's workspace.
 
-If you only want the behavioral rules and bash scripts without the full TypeScript plugin:
+### Option C: ClawHub
 
-```sh
-git clone https://github.com/adversa-ai/secureclaw.git
-bash secureclaw/secureclaw/skill/scripts/install.sh
-```
+Install the skill directly from [ClawHub](https://clawhub.io):
 
-This copies the skill to `~/.openclaw/skills/secureclaw/` and makes the scripts executable. No build step, no dependencies beyond bash and standard Unix tools.
+1. Search for **SecureClaw** on ClawHub
+2. Click Install
+3. The skill is automatically deployed to your agent's workspace
 
 ### What the Installer Does
 
-1. Locates your OpenClaw installation directory
+1. Locates your OpenClaw installation directory (`~/.openclaw`, `~/.moltbot`, `~/.clawdbot`, or `~/clawd`)
 2. Reads the skill version from `skill.json`
 3. If a previous version exists, creates a timestamped backup (`secureclaw.bak.<timestamp>`)
 4. Copies all skill files to `~/.openclaw/skills/secureclaw/`
 5. Sets executable permissions on all scripts
+6. If a workspace exists, also copies to `~/.openclaw/workspace/skills/secureclaw/`
+7. Removes old `secureclaw-advisor` directory if present (legacy name)
+8. Registers SecureClaw in `TOOLS.md` and `AGENTS.md` if not already present
 
 The installer is idempotent. Running it again performs an update. If the source and destination are the same directory (e.g., running from an already-installed location), the copy step is skipped automatically.
 
