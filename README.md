@@ -1,12 +1,24 @@
 # SecureClaw
 
-Automated security hardening for [OpenClaw](https://openclaw.ai) AI agents.
+End-to-End security paltform for [OpenClaw](https://openclaw.ai) AI agents.
+
+Audit, Hardening and Runtine Security for Openclaw.
 
 Developed by [Adversa AI](https://adversa.ai) -- Agentic AI Security and Red Teaming Pioneers.
 
 51 audit checks. 12 behavioral rules. 9 scripts. 4 pattern databases. Full OWASP ASI Top 10 coverage.
 
-SecureClaw audits your OpenClaw installation for misconfigurations and known vulnerabilities, applies automated hardening fixes, and gives your agent behavioral security rules that protect against prompt injection, credential theft, supply chain attacks, and privacy leaks.
+SecureClaw is a 360-degree security plugin and skills tahat audits your OpenClaw installation for misconfigurations and known vulnerabilities, applies automated hardening fixes, and gives your agent behavioral security rules that protect against prompt injection, credential theft, supply chain attacks, and privacy leaks.
+
+1️⃣ Full OWASP Agentic Security Top 10 coverage. Static and runtime. We're the first and only OpenClaw security tool  to formally map every control to the ASI framework. 10/10 categories. 
+
+2️⃣ Every known incident. Every known CVE up untill now. All 8 documented threat classes from the OpenClaw Security 101 research have specific countermeasures. Not generic "be careful" advice — actual detection and hardening for each one.
+
+3️⃣ Plugin + Skill layered defense. The plugin runs as code — gateway hardening, permission lockdown, credential scanning. The skill runs as LLM directives — injection awareness, PII scanning, integrity monitoring. Two layers. Each catches the failures of the other.
+
+4️⃣ Ultra-lean ~1,150 token skill. Most security skills dump thousands of tokens into context, competing with your actual conversations. Ours is 12 rules and a set of bash scripts. All detection logic runs as bash — zero LLM tokens. Your agent stays fast, stays focused, stays protected.
+
+
 
 ---
 
