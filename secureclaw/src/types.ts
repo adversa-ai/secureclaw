@@ -5,6 +5,12 @@
 /** Severity levels for audit findings */
 export type Severity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'INFO';
 
+/** MAESTRO 7-layer agentic AI threat model (CSA) */
+export type MaestroLayer = 'L1' | 'L2' | 'L3' | 'L4' | 'L5' | 'L6' | 'L7';
+
+/** NIST AI 100-2 E2025 GenAI attack types */
+export type NistAttackType = 'evasion' | 'poisoning' | 'privacy' | 'misuse';
+
 /** A single audit finding */
 export interface AuditFinding {
   id: string;
@@ -17,6 +23,10 @@ export interface AuditFinding {
   autoFixable: boolean;
   references: string[];
   owaspAsi: string;
+  /** CSA MAESTRO layer (L1–L7) */
+  maestroLayer?: MaestroLayer;
+  /** NIST AI 100-2 E2025 GenAI attack type */
+  nistCategory?: NistAttackType;
 }
 
 /** Summary counts of findings by severity */
@@ -53,6 +63,8 @@ export interface AuditOptions {
 export interface GatewayConfig {
   bind?: string;
   port?: number;
+  /** Legacy flat auth token (pre-2026 configs) */
+  authToken?: string;
   auth?: {
     mode?: string;
     token?: string;

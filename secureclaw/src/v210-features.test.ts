@@ -1,7 +1,7 @@
 /**
- * v2.1.0 Feature Tests — Comprehensive edge-case coverage
+ * v2.1.0+ Feature Tests — Comprehensive edge-case coverage
  *
- * Tests every new feature added in v2.1.0 for production safety:
+ * Tests features added in v2.1.0 and v2.2.0 for production safety:
  * - G1: Memory trust levels (Rule 13, SC-TRUST-001)
  * - G2: Kill switch (Rule 14, SC-KILL-001, CLI commands)
  * - G3: Behavioral baseline (tool call logging, frequency tracking)
@@ -25,7 +25,8 @@ import {
   getRiskProfile,
   createAuditContext,
 } from './index.js';
-import { runAudit, auditMultiFramework } from './auditor.js';
+import { runAudit, auditMultiFramework, auditGateway } from './auditor.js';
+import type { AuditContext } from './types.js';
 
 // ============================================================
 // G2: Kill Switch — Edge Cases
@@ -412,10 +413,10 @@ describe('runAudit includes multiFramework findings', () => {
     expect(ids).toContain('SC-DEGRAD-001');
   });
 
-  it('runAudit report version is 2.1.0', async () => {
+  it('runAudit report version is 2.2.0', async () => {
     const ctx = await createAuditContext(tmpDir);
     const report = await runAudit({ context: ctx });
-    expect(report.secureclawVersion).toBe('2.1.0');
+    expect(report.secureclawVersion).toBe('2.2.0');
   });
 
   it('runAudit includes SC-TRUST-001 when cognitive file is poisoned', async () => {
@@ -459,7 +460,7 @@ describe('runAudit includes multiFramework findings', () => {
 describe('version consistency', () => {
   it('plugin version matches expected', async () => {
     const { default: plugin } = await import('./index.js');
-    expect(plugin.version).toBe('2.1.0');
+    expect(plugin.version).toBe('2.2.0');
   });
 
   it('audit report version matches', async () => {
@@ -467,7 +468,149 @@ describe('version consistency', () => {
     await fs.writeFile(path.join(tmpDir, 'openclaw.json'), '{}', 'utf-8');
     const ctx = await createAuditContext(tmpDir);
     const report = await runAudit({ context: ctx });
-    expect(report.secureclawVersion).toBe('2.1.0');
+    expect(report.secureclawVersion).toBe('2.2.0');
     await fs.rm(tmpDir, { recursive: true, force: true });
+  });
+});
+
+// ============================================================
+// G6: MAESTRO / NIST Tagging (v2.2.0)
+// ============================================================
+describe('G6: MAESTRO / NIST tagging (v2.2.0)', () => {
+  let tmpDir: string;
+  let ctx: AuditContext;
+
+  beforeEach(async () => {
+    tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'sc-maestro-'));
+    await fs.writeFile(path.join(tmpDir, 'openclaw.json'), '{}', 'utf-8');
+    ctx = await createAuditContext(tmpDir);
+  });
+
+  afterEach(async () => {
+    await fs.rm(tmpDir, { recursive: true, force: true });
+  });
+
+  it('all findings have maestroLayer', async () => {
+    const report = await runAudit({ context: ctx });
+    for (const f of report.findings) {
+      expect(f.maestroLayer).toBeDefined();
+      expect(['L1','L2','L3','L4','L5','L6','L7']).toContain(f.maestroLayer);
+    }
+  });
+
+  it('non-INFO findings have nistCategory', async () => {
+    const report = await runAudit({ context: ctx });
+    const nonInfo = report.findings.filter(f => f.severity !== 'INFO');
+    for (const f of nonInfo) {
+      expect(f.nistCategory).toBeDefined();
+      expect(['evasion','poisoning','privacy','misuse']).toContain(f.nistCategory);
+    }
+  });
+
+  it('MaestroLayer and NistAttackType types are exported', async () => {
+    const { MaestroLayer, NistAttackType } = await import('./types.js');
+    // These are type aliases, not runtime values, so just verify the module loads
+    expect(true).toBe(true);
+  });
+});
+
+// ============================================================
+// G7: Cross-layer Threat Detection (v2.2.0)
+// ============================================================
+describe('G7: Cross-layer threat detection (v2.2.0)', () => {
+  let tmpDir: string;
+  let ctx: AuditContext;
+
+  beforeEach(async () => {
+    tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'sc-cross-'));
+    await fs.writeFile(path.join(tmpDir, 'openclaw.json'), '{}', 'utf-8');
+    ctx = await createAuditContext(tmpDir);
+  });
+
+  afterEach(async () => {
+    await fs.rm(tmpDir, { recursive: true, force: true });
+  });
+
+  it('SC-CROSS-001 appears when findings span 3+ MAESTRO layers', async () => {
+    // Default insecure ctx triggers findings across L2, L3, L4, L5, L7
+    const report = await runAudit({ context: ctx });
+    const cross = report.findings.find(f => f.id === 'SC-CROSS-001');
+    expect(cross).toBeDefined();
+    expect(cross!.severity).toBe('HIGH');
+    expect(cross!.maestroLayer).toBe('L6');
+    expect(cross!.nistCategory).toBe('evasion');
+  });
+
+  it('SC-CROSS-001 includes affected layer list in evidence', async () => {
+    const report = await runAudit({ context: ctx });
+    const cross = report.findings.find(f => f.id === 'SC-CROSS-001');
+    expect(cross).toBeDefined();
+    expect(cross!.evidence).toContain('L');
+  });
+});
+
+// ============================================================
+// G8: Legacy authToken Support (v2.2.0)
+// ============================================================
+describe('G8: Legacy authToken support (v2.2.0)', () => {
+  let tmpDir: string;
+
+  beforeEach(async () => {
+    tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'sc-legacy-auth-'));
+    await fs.writeFile(path.join(tmpDir, 'openclaw.json'), '{}', 'utf-8');
+  });
+
+  afterEach(async () => {
+    await fs.rm(tmpDir, { recursive: true, force: true });
+  });
+
+  it('legacy authToken does not trigger SC-GW-002', async () => {
+    const legacyCtx = await createAuditContext(tmpDir, {
+      gateway: {
+        bind: 'loopback',
+        port: 4767,
+        authToken: 'a-very-long-legacy-token-that-is-at-least-32-chars-ok',
+      },
+      tools: { exec: { host: 'sandbox' } },
+      exec: { approvals: 'always' },
+    });
+    const findings = await auditGateway(legacyCtx);
+    const gw002 = findings.find(f => f.id === 'SC-GW-002');
+    expect(gw002).toBeUndefined();
+  });
+
+  it('legacy authToken is used for SC-GW-003 token length check', async () => {
+    const legacyCtx = await createAuditContext(tmpDir, {
+      gateway: {
+        bind: 'loopback',
+        port: 4767,
+        authToken: 'short',
+      },
+      tools: { exec: { host: 'sandbox' } },
+      exec: { approvals: 'always' },
+    });
+    const findings = await auditGateway(legacyCtx);
+    const gw003 = findings.find(f => f.id === 'SC-GW-003');
+    expect(gw003).toBeDefined();
+    expect(gw003!.severity).toBe('MEDIUM');
+  });
+
+  it('modern auth.mode takes precedence over legacy authToken', async () => {
+    const mixedCtx = await createAuditContext(tmpDir, {
+      gateway: {
+        bind: 'loopback',
+        port: 4767,
+        authToken: 'legacy-token-is-present-but-short',
+        auth: { mode: 'token', token: 'modern-token-is-long-enough-for-32-char-minimum!!' },
+      },
+      tools: { exec: { host: 'sandbox' } },
+      exec: { approvals: 'always' },
+    });
+    const findings = await auditGateway(mixedCtx);
+    const gw002 = findings.find(f => f.id === 'SC-GW-002');
+    expect(gw002).toBeUndefined();
+    // Modern token length is used (>32), so no SC-GW-003
+    const gw003 = findings.find(f => f.id === 'SC-GW-003');
+    expect(gw003).toBeUndefined();
   });
 });

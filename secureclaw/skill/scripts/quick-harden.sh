@@ -1,5 +1,5 @@
 #!/bin/bash
-# SecureClaw — Quick Hardening v2.0
+# SecureClaw — Quick Hardening v2.2
 # Developed by Adversa AI — Agentic AI Security and Red Teaming Pioneers
 # https://adversa.ai
 set -euo pipefail
@@ -19,6 +19,14 @@ echo "🔒 SecureClaw — Quick Hardening"
 echo "================================"
 N=0
 
+# Portable permission reader (Linux first, then macOS, with output validation)
+get_perms() {
+  local p
+  p=$(stat -c '%a' "$1" 2>/dev/null) && [ ${#p} -le 4 ] && echo "$p" && return
+  p=$(stat -f '%Lp' "$1" 2>/dev/null) && [ ${#p} -le 4 ] && echo "$p" && return
+  echo "?"
+}
+
 # Gateway bind
 if [ -f "$CONFIG" ] && grep -q '"bind".*"0.0.0.0"' "$CONFIG" 2>/dev/null; then
   echo "🔧 Fixing: gateway bind 0.0.0.0 → 127.0.0.1"
@@ -35,8 +43,27 @@ if [ -f "$CONFIG" ] && grep -q '"bind".*"0.0.0.0"' "$CONFIG" 2>/dev/null; then
   fi
 fi
 
+# Gateway authentication
+if [ -f "$CONFIG" ]; then
+  if ! grep -q '"authToken"' "$CONFIG" 2>/dev/null && \
+     ! (grep -q '"auth"' "$CONFIG" 2>/dev/null && grep -q '"mode"' "$CONFIG" 2>/dev/null); then
+    if command -v openclaw >/dev/null 2>&1; then
+      echo "🔧 Fixing: enabling gateway authentication"
+      TOKEN=$(openssl rand -hex 24 2>/dev/null || head -c 48 /dev/urandom | od -An -tx1 | tr -d ' \n' | head -c 48)
+      openclaw config set gateway.auth.mode token 2>/dev/null || true
+      openclaw config set gateway.auth.token "$TOKEN" 2>/dev/null || true
+      echo "   Auth token set (save this): $TOKEN"
+      N=$((N+1))
+    else
+      echo "⚠️  Gateway auth not configured. Run:"
+      echo "   openclaw config set gateway.auth.mode token"
+      echo "   openclaw config set gateway.auth.token \"\$(openssl rand -hex 24)\""
+    fi
+  fi
+fi
+
 # Directory permissions
-DP=$(stat -f '%Lp' "$OPENCLAW_DIR" 2>/dev/null || stat -c '%a' "$OPENCLAW_DIR" 2>/dev/null || echo "?")
+DP=$(get_perms "$OPENCLAW_DIR")
 if [ "$DP" != "700" ] && [ "$DP" != "?" ]; then
   echo "🔧 Fixing: directory permissions $DP → 700"
   chmod 700 "$OPENCLAW_DIR"; N=$((N+1))
@@ -44,7 +71,7 @@ fi
 
 # .env permissions
 if [ -f "$OPENCLAW_DIR/.env" ]; then
-  EP=$(stat -f '%Lp' "$OPENCLAW_DIR/.env" 2>/dev/null || stat -c '%a' "$OPENCLAW_DIR/.env" 2>/dev/null || echo "?")
+  EP=$(get_perms "$OPENCLAW_DIR/.env")
   if [ "$EP" != "600" ] && [ "$EP" != "400" ] && [ "$EP" != "?" ]; then
     echo "🔧 Fixing: .env permissions $EP → 600"
     chmod 600 "$OPENCLAW_DIR/.env"; N=$((N+1))
@@ -109,7 +136,7 @@ else
 fi
 
 echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "✅ Applied $N hardening changes"
 echo "⚠️  Restart gateway for changes to take effect"
 echo "Full protection: openclaw plugins install secureclaw"

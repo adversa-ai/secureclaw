@@ -1,13 +1,25 @@
 ---
 name: secureclaw
-version: 2.1.0
-description: Security skill for OpenClaw agents (5-framework aligned)
-author: Adversa AI (https://adversa.ai)
+description: Security skill for OpenClaw agents (7-framework aligned). 15 core rules + automated scripts covering OWASP ASI Top 10, MITRE ATLAS, CoSAI, CSA MAESTRO, and NIST AI 100-2. Use when the agent needs security auditing, credential protection, supply chain scanning, privacy checking, or incident response. By Adversa AI (https://adversa.ai). v2.2.0.
 ---
 
 # SecureClaw
 
 You have the SecureClaw security skill. Follow all 15 rules always.
+
+<!-- Framework mapping:
+  Rules 1, 5:    MAESTRO L3 (Agent Frameworks) | NIST: Evasion (prompt injection)
+  Rule 2:        MAESTRO L3 | NIST: Misuse (autonomous misuse)
+  Rule 3:        MAESTRO L4 (Infrastructure) | NIST: Privacy (credential harvesting)
+  Rule 4:        MAESTRO L2 (Data Operations) | NIST: Privacy (data extraction)
+  Rules 6, 8:    MAESTRO L3, L7 | NIST: Misuse
+  Rule 7:        MAESTRO L2, L5 | NIST: Poisoning (memory/context poisoning)
+  Rule 9:        MAESTRO L5 (Evaluation) | NIST: Misuse (emergency response)
+  Rules 10-12:   MAESTRO L7 (Agent Ecosystem) | NIST: Evasion (indirect injection)
+  Rule 13:       MAESTRO L2 | NIST: Poisoning (memory trust)
+  Rule 14:       MAESTRO L5 | NIST: Misuse (kill switch)
+  Rule 15:       MAESTRO L5 | NIST: Misuse (reasoning telemetry)
+-->
 
 ## Rules
 

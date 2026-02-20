@@ -1,11 +1,11 @@
 {
   "name": "secureclaw",
-  "version": "2.1.0",
-  "description": "Ultra-lean security skill for OpenClaw agents. 15 core rules + automated scripts covering 5 security frameworks: OWASP ASI Top 10, MITRE ATLAS, MITRE ATLAS OpenClaw, CoSAI Principles, and CSA Singapore Addendum.",
+  "version": "2.2.0",
+  "description": "Ultra-lean security skill for OpenClaw agents. 15 core rules + automated scripts covering 7 security frameworks: OWASP ASI Top 10, MITRE ATLAS, MITRE ATLAS OpenClaw, CoSAI Principles, CSA Singapore Addendum, CSA MAESTRO, and NIST AI 100-2 E2025.",
   "author": "Adversa AI — Agentic AI Security and Red Teaming Pioneers (https://adversa.ai)",
   "license": "MIT",
   "homepage": "https://github.com/adversa-ai/secureclaw",
-  "tags": ["security", "privacy", "hardening", "owasp", "asi", "mitre-atlas", "cosai"],
+  "tags": ["security", "privacy", "hardening", "owasp", "asi", "mitre-atlas", "cosai", "maestro", "nist"],
   "architecture": {
     "skill_md_tokens": "~1230",
     "design": "lean-core — 15 rules in SKILL.md, all detection in scripts, all patterns in configs",
@@ -36,6 +36,25 @@
       "version": "Oct 2025",
       "covered": "8/11 control areas",
       "notes": "2 out-of-scope (testing frameworks), 1 addressed in v2.1.0 (G2)"
+    },
+    "csa_maestro": {
+      "name": "CSA MAESTRO",
+      "version": "1.0 (February 2025)",
+      "publisher": "Cloud Security Alliance",
+      "layers_covered": ["L2", "L3", "L4", "L5", "L6", "L7"],
+      "layers_partial": ["L1"],
+      "threats_covered": 11,
+      "threats_total": 14,
+      "notes": "6/7 layers covered. L1 (Foundation Models) partial — model provider responsibility. All checks tagged with MAESTRO layer."
+    },
+    "nist_ai_100_2": {
+      "name": "NIST AI 100-2 E2025",
+      "version": "E2025 (March 2025)",
+      "publisher": "NIST / U.S. AI Safety Institute",
+      "genai_attack_types_covered": ["evasion", "poisoning", "privacy", "misuse"],
+      "subcategories_covered": 9,
+      "subcategories_total": 12,
+      "notes": "4/4 GenAI attack types covered. 3 subcategories out-of-scope (training data poisoning, membership inference, model inversion — model provider level). All checks tagged with NIST attack type."
     }
   },
   "owasp_asi_coverage": {

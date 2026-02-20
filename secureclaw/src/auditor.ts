@@ -18,6 +18,8 @@ import type {
   AuditReport,
   AuditSummary,
   IOCDatabase,
+  MaestroLayer,
+  NistAttackType,
   Severity,
 } from './types.js';
 
@@ -165,11 +167,13 @@ export async function auditGateway(ctx: AuditContext, deep = false): Promise<Aud
       autoFixable: true,
       references: ['CVE-2026-25253'],
       owaspAsi: 'ASI03',
+      maestroLayer: 'L4',
+      nistCategory: 'evasion',
     });
   }
 
-  // GW-002: Gateway auth mode
-  const authMode = gw?.auth?.mode;
+  // GW-002: Gateway auth mode (supports legacy "authToken" and modern "auth.mode")
+  const authMode = gw?.auth?.mode ?? (gw?.authToken ? 'token' : undefined);
   if (authMode !== 'password' && authMode !== 'token') {
     findings.push({
       id: 'SC-GW-002',
@@ -182,11 +186,13 @@ export async function auditGateway(ctx: AuditContext, deep = false): Promise<Aud
       autoFixable: true,
       references: ['CVE-2026-25253'],
       owaspAsi: 'ASI03',
+      maestroLayer: 'L4',
+      nistCategory: 'evasion',
     });
   }
 
-  // GW-003: Auth token length
-  const token = gw?.auth?.token ?? gw?.auth?.password ?? '';
+  // GW-003: Auth token length (supports legacy "authToken" and modern "auth.token")
+  const token = gw?.auth?.token ?? gw?.auth?.password ?? gw?.authToken ?? '';
   if (authMode === 'token' || authMode === 'password') {
     if (token.length > 0 && token.length < 32) {
       findings.push({
@@ -200,6 +206,8 @@ export async function auditGateway(ctx: AuditContext, deep = false): Promise<Aud
         autoFixable: true,
         references: [],
         owaspAsi: 'ASI03',
+        maestroLayer: 'L4',
+        nistCategory: 'evasion',
       });
     }
   }
@@ -229,6 +237,8 @@ export async function auditGateway(ctx: AuditContext, deep = false): Promise<Aud
         autoFixable: !isLoopback,
         references: [],
         owaspAsi: 'ASI05',
+        maestroLayer: 'L4',
+        nistCategory: 'evasion',
       });
     } else {
       findings.push({
@@ -242,6 +252,8 @@ export async function auditGateway(ctx: AuditContext, deep = false): Promise<Aud
         autoFixable: false,
         references: [],
         owaspAsi: 'ASI05',
+        maestroLayer: 'L4',
+        nistCategory: 'evasion',
       });
     }
   } else {
@@ -256,6 +268,8 @@ export async function auditGateway(ctx: AuditContext, deep = false): Promise<Aud
       autoFixable: false,
       references: [],
       owaspAsi: 'ASI05',
+      maestroLayer: 'L4',
+      nistCategory: 'evasion',
     });
   }
 
@@ -283,6 +297,8 @@ export async function auditGateway(ctx: AuditContext, deep = false): Promise<Aud
         autoFixable: !isLoopback,
         references: [],
         owaspAsi: 'ASI05',
+        maestroLayer: 'L4',
+        nistCategory: 'evasion',
       });
     } else {
       findings.push({
@@ -296,6 +312,8 @@ export async function auditGateway(ctx: AuditContext, deep = false): Promise<Aud
         autoFixable: false,
         references: [],
         owaspAsi: 'ASI05',
+        maestroLayer: 'L4',
+        nistCategory: 'evasion',
       });
     }
   } else {
@@ -310,6 +328,8 @@ export async function auditGateway(ctx: AuditContext, deep = false): Promise<Aud
       autoFixable: false,
       references: [],
       owaspAsi: 'ASI05',
+      maestroLayer: 'L4',
+      nistCategory: 'evasion',
     });
   }
 
@@ -326,6 +346,8 @@ export async function auditGateway(ctx: AuditContext, deep = false): Promise<Aud
       autoFixable: false,
       references: [],
       owaspAsi: 'ASI03',
+      maestroLayer: 'L4',
+      nistCategory: 'evasion',
     });
   }
 
@@ -342,6 +364,8 @@ export async function auditGateway(ctx: AuditContext, deep = false): Promise<Aud
       autoFixable: false,
       references: [],
       owaspAsi: 'ASI05',
+      maestroLayer: 'L4',
+      nistCategory: 'evasion',
     });
   }
 
@@ -359,6 +383,8 @@ export async function auditGateway(ctx: AuditContext, deep = false): Promise<Aud
       autoFixable: true,
       references: ['CVE-2026-25253'],
       owaspAsi: 'ASI03',
+      maestroLayer: 'L4',
+      nistCategory: 'evasion',
     });
   }
 
@@ -375,6 +401,8 @@ export async function auditGateway(ctx: AuditContext, deep = false): Promise<Aud
       autoFixable: true,
       references: [],
       owaspAsi: 'ASI03',
+      maestroLayer: 'L4',
+      nistCategory: 'evasion',
     });
   }
 
@@ -391,6 +419,8 @@ export async function auditGateway(ctx: AuditContext, deep = false): Promise<Aud
       autoFixable: true,
       references: [],
       owaspAsi: 'ASI03',
+      maestroLayer: 'L4',
+      nistCategory: 'evasion',
     });
   }
 
@@ -417,6 +447,8 @@ export async function auditCredentials(ctx: AuditContext): Promise<AuditFinding[
       autoFixable: true,
       references: [],
       owaspAsi: 'ASI03',
+      maestroLayer: 'L4',
+      nistCategory: 'privacy',
     });
   }
 
@@ -435,6 +467,8 @@ export async function auditCredentials(ctx: AuditContext): Promise<AuditFinding[
       autoFixable: true,
       references: [],
       owaspAsi: 'ASI03',
+      maestroLayer: 'L4',
+      nistCategory: 'privacy',
     });
   }
 
@@ -455,6 +489,8 @@ export async function auditCredentials(ctx: AuditContext): Promise<AuditFinding[
         autoFixable: true,
         references: [],
         owaspAsi: 'ASI03',
+        maestroLayer: 'L4',
+        nistCategory: 'privacy',
       });
     }
   }
@@ -483,6 +519,8 @@ export async function auditCredentials(ctx: AuditContext): Promise<AuditFinding[
         autoFixable: true,
         references: [],
         owaspAsi: 'ASI03',
+        maestroLayer: 'L4',
+        nistCategory: 'privacy',
       });
     }
   }
@@ -512,6 +550,8 @@ export async function auditCredentials(ctx: AuditContext): Promise<AuditFinding[
         autoFixable: true,
         references: [],
         owaspAsi: 'ASI03',
+        maestroLayer: 'L4',
+        nistCategory: 'privacy',
       });
     }
   }
@@ -533,6 +573,8 @@ export async function auditCredentials(ctx: AuditContext): Promise<AuditFinding[
         autoFixable: true,
         references: [],
         owaspAsi: 'ASI03',
+        maestroLayer: 'L4',
+        nistCategory: 'privacy',
       });
     }
   }
@@ -557,6 +599,8 @@ export async function auditCredentials(ctx: AuditContext): Promise<AuditFinding[
             autoFixable: true,
             references: [],
             owaspAsi: 'ASI03',
+            maestroLayer: 'L4',
+            nistCategory: 'privacy',
           });
         }
       }
@@ -580,6 +624,8 @@ export async function auditCredentials(ctx: AuditContext): Promise<AuditFinding[
       autoFixable: false,
       references: [],
       owaspAsi: 'ASI03',
+      maestroLayer: 'L4',
+      nistCategory: 'privacy',
     });
   }
 
@@ -643,6 +689,8 @@ export async function auditExecution(ctx: AuditContext): Promise<AuditFinding[]>
       autoFixable: false,
       references: ['CVE-2026-25253'],
       owaspAsi: 'ASI02',
+      maestroLayer: 'L3',
+      nistCategory: 'misuse',
     });
   }
 
@@ -659,6 +707,8 @@ export async function auditExecution(ctx: AuditContext): Promise<AuditFinding[]>
       autoFixable: true,
       references: [],
       owaspAsi: 'ASI05',
+      maestroLayer: 'L3',
+      nistCategory: 'misuse',
     });
   }
 
@@ -675,6 +725,8 @@ export async function auditExecution(ctx: AuditContext): Promise<AuditFinding[]>
       autoFixable: false,
       references: [],
       owaspAsi: 'ASI05',
+      maestroLayer: 'L3',
+      nistCategory: 'misuse',
     });
   }
 
@@ -694,6 +746,8 @@ export async function auditExecution(ctx: AuditContext): Promise<AuditFinding[]>
           autoFixable: true,
           references: [],
           owaspAsi: 'ASI05',
+          maestroLayer: 'L3',
+          nistCategory: 'misuse',
         });
       }
 
@@ -710,6 +764,8 @@ export async function auditExecution(ctx: AuditContext): Promise<AuditFinding[]>
           autoFixable: true,
           references: [],
           owaspAsi: 'ASI05',
+          maestroLayer: 'L3',
+          nistCategory: 'misuse',
         });
       }
 
@@ -726,6 +782,8 @@ export async function auditExecution(ctx: AuditContext): Promise<AuditFinding[]>
           autoFixable: true,
           references: [],
           owaspAsi: 'ASI05',
+          maestroLayer: 'L3',
+          nistCategory: 'misuse',
         });
       }
 
@@ -742,6 +800,8 @@ export async function auditExecution(ctx: AuditContext): Promise<AuditFinding[]>
           autoFixable: true,
           references: [],
           owaspAsi: 'ASI05',
+          maestroLayer: 'L3',
+          nistCategory: 'misuse',
         });
       }
     }
@@ -771,6 +831,8 @@ export async function auditAccessControl(ctx: AuditContext): Promise<AuditFindin
         autoFixable: true,
         references: [],
         owaspAsi: 'ASI01',
+        maestroLayer: 'L3',
+        nistCategory: 'evasion',
       });
     }
 
@@ -787,6 +849,8 @@ export async function auditAccessControl(ctx: AuditContext): Promise<AuditFindin
         autoFixable: true,
         references: [],
         owaspAsi: 'ASI01',
+        maestroLayer: 'L3',
+        nistCategory: 'evasion',
       });
     }
 
@@ -803,6 +867,8 @@ export async function auditAccessControl(ctx: AuditContext): Promise<AuditFindin
         autoFixable: false,
         references: [],
         owaspAsi: 'ASI09',
+        maestroLayer: 'L3',
+        nistCategory: 'evasion',
       });
     }
   }
@@ -821,6 +887,8 @@ export async function auditAccessControl(ctx: AuditContext): Promise<AuditFindin
         autoFixable: true,
         references: [],
         owaspAsi: 'ASI01',
+        maestroLayer: 'L3',
+        nistCategory: 'evasion',
       });
     }
   }
@@ -838,6 +906,8 @@ export async function auditAccessControl(ctx: AuditContext): Promise<AuditFindin
       autoFixable: true,
       references: [],
       owaspAsi: 'ASI09',
+      maestroLayer: 'L3',
+      nistCategory: 'evasion',
     });
   }
 
@@ -863,6 +933,8 @@ export async function auditSupplyChain(ctx: AuditContext): Promise<AuditFinding[
     autoFixable: false,
     references: [],
     owaspAsi: 'ASI04',
+    maestroLayer: 'L7',
+    nistCategory: 'poisoning',
   });
 
   // SC-002..005: Scan each skill for dangerous patterns
@@ -894,6 +966,8 @@ export async function auditSupplyChain(ctx: AuditContext): Promise<AuditFinding[
             autoFixable: false,
             references: [],
             owaspAsi: 'ASI04',
+            maestroLayer: 'L7',
+            nistCategory: 'poisoning',
           });
         }
       }
@@ -919,6 +993,8 @@ export async function auditSupplyChain(ctx: AuditContext): Promise<AuditFinding[
           autoFixable: false,
           references: [],
           owaspAsi: 'ASI04',
+          maestroLayer: 'L7',
+          nistCategory: 'poisoning',
         });
       }
     }
@@ -936,6 +1012,8 @@ export async function auditSupplyChain(ctx: AuditContext): Promise<AuditFinding[
         autoFixable: false,
         references: [],
         owaspAsi: 'ASI04',
+        maestroLayer: 'L7',
+        nistCategory: 'poisoning',
       });
     }
 
@@ -958,6 +1036,8 @@ export async function auditSupplyChain(ctx: AuditContext): Promise<AuditFinding[
         autoFixable: false,
         references: [],
         owaspAsi: 'ASI04',
+        maestroLayer: 'L7',
+        nistCategory: 'poisoning',
       });
     }
   }
@@ -987,6 +1067,8 @@ export async function auditSupplyChain(ctx: AuditContext): Promise<AuditFinding[
           autoFixable: false,
           references: [],
           owaspAsi: 'ASI04',
+          maestroLayer: 'L7',
+          nistCategory: 'poisoning',
         });
       }
     }
@@ -1016,6 +1098,7 @@ export async function auditMemoryIntegrity(ctx: AuditContext): Promise<AuditFind
       autoFixable: false,
       references: [],
       owaspAsi: 'ASI06',
+      maestroLayer: 'L2',
     });
     return findings;
   }
@@ -1043,6 +1126,8 @@ export async function auditMemoryIntegrity(ctx: AuditContext): Promise<AuditFind
             autoFixable: false,
             references: [],
             owaspAsi: 'ASI06',
+            maestroLayer: 'L2',
+            nistCategory: 'poisoning',
           });
         }
       }
@@ -1060,6 +1145,8 @@ export async function auditMemoryIntegrity(ctx: AuditContext): Promise<AuditFind
           autoFixable: false,
           references: [],
           owaspAsi: 'ASI06',
+          maestroLayer: 'L2',
+          nistCategory: 'poisoning',
         });
       }
 
@@ -1086,6 +1173,8 @@ export async function auditMemoryIntegrity(ctx: AuditContext): Promise<AuditFind
               autoFixable: false,
               references: [],
               owaspAsi: 'ASI10',
+              maestroLayer: 'L2',
+              nistCategory: 'evasion',
             });
           }
         } catch {
@@ -1112,6 +1201,8 @@ export async function auditMemoryIntegrity(ctx: AuditContext): Promise<AuditFind
           autoFixable: true,
           references: [],
           owaspAsi: 'ASI06',
+          maestroLayer: 'L2',
+          nistCategory: 'privacy',
         });
       }
     }
@@ -1146,6 +1237,8 @@ export async function auditCostExposure(ctx: AuditContext): Promise<AuditFinding
       autoFixable: false,
       references: [],
       owaspAsi: 'ASI08',
+      maestroLayer: 'L5',
+      nistCategory: 'misuse',
     });
   }
 
@@ -1179,6 +1272,8 @@ export async function auditCostExposure(ctx: AuditContext): Promise<AuditFinding
       autoFixable: false,
       references: [],
       owaspAsi: 'ASI08',
+      maestroLayer: 'L5',
+      nistCategory: 'misuse',
     });
   }
 
@@ -1200,6 +1295,8 @@ export async function auditCostExposure(ctx: AuditContext): Promise<AuditFinding
         autoFixable: false,
         references: [],
         owaspAsi: 'ASI08',
+        maestroLayer: 'L5',
+        nistCategory: 'misuse',
       });
     }
   }
@@ -1218,6 +1315,8 @@ export async function auditCostExposure(ctx: AuditContext): Promise<AuditFinding
       autoFixable: false,
       references: [],
       owaspAsi: 'ASI08',
+      maestroLayer: 'L5',
+      nistCategory: 'misuse',
     });
   }
 
@@ -1245,6 +1344,7 @@ export async function auditIOC(ctx: AuditContext): Promise<AuditFinding[]> {
       autoFixable: false,
       references: [],
       owaspAsi: 'ASI04',
+      maestroLayer: 'L6',
     });
     return findings;
   }
@@ -1269,6 +1369,8 @@ export async function auditIOC(ctx: AuditContext): Promise<AuditFinding[]> {
           autoFixable: false,
           references: [],
           owaspAsi: 'ASI04',
+          maestroLayer: 'L7',
+          nistCategory: 'evasion',
         });
       }
     }
@@ -1292,6 +1394,8 @@ export async function auditIOC(ctx: AuditContext): Promise<AuditFinding[]> {
             autoFixable: false,
             references: [],
             owaspAsi: 'ASI04',
+            maestroLayer: 'L7',
+            nistCategory: 'poisoning',
           });
         }
       } catch {
@@ -1326,6 +1430,8 @@ export async function auditIOC(ctx: AuditContext): Promise<AuditFinding[]> {
           autoFixable: false,
           references: [],
           owaspAsi: 'ASI04',
+          maestroLayer: 'L7',
+          nistCategory: 'poisoning',
         });
       }
     }
@@ -1354,6 +1460,8 @@ export async function auditIOC(ctx: AuditContext): Promise<AuditFinding[]> {
               autoFixable: false,
               references: [],
               owaspAsi: 'ASI10',
+              maestroLayer: 'L4',
+              nistCategory: 'privacy',
             });
           }
         }
@@ -1385,6 +1493,8 @@ export async function auditIOC(ctx: AuditContext): Promise<AuditFinding[]> {
               autoFixable: false,
               references: [],
               owaspAsi: 'ASI10',
+              maestroLayer: 'L4',
+              nistCategory: 'privacy',
             });
           }
         }
@@ -1418,6 +1528,8 @@ export async function auditMultiFramework(ctx: AuditContext): Promise<AuditFindi
       autoFixable: false,
       references: [],
       owaspAsi: 'ASI10',
+      maestroLayer: 'L5',
+      nistCategory: 'misuse',
     });
   }
 
@@ -1439,6 +1551,8 @@ export async function auditMultiFramework(ctx: AuditContext): Promise<AuditFindi
           autoFixable: false,
           references: ['AML.CS0051'],
           owaspAsi: 'ASI06',
+          maestroLayer: 'L2',
+          nistCategory: 'poisoning',
         });
       }
     }
@@ -1458,6 +1572,8 @@ export async function auditMultiFramework(ctx: AuditContext): Promise<AuditFindi
       autoFixable: false,
       references: ['AML.CS0051'],
       owaspAsi: 'ASI01',
+      maestroLayer: 'L3',
+      nistCategory: 'evasion',
     });
   }
 
@@ -1474,10 +1590,50 @@ export async function auditMultiFramework(ctx: AuditContext): Promise<AuditFindi
       autoFixable: false,
       references: [],
       owaspAsi: 'ASI08',
+      maestroLayer: 'L5',
+      nistCategory: 'misuse',
     });
   }
 
   return findings;
+}
+
+// ============================================================
+// Cross-layer threat detection (MAESTRO)
+// ============================================================
+function auditCrossLayerRisk(findings: AuditFinding[]): AuditFinding[] {
+  const crossFindings: AuditFinding[] = [];
+
+  // Collect unique MAESTRO layers that have non-INFO severity findings
+  const affectedLayers = new Set<MaestroLayer>();
+  for (const f of findings) {
+    if (f.maestroLayer && f.severity !== 'INFO') {
+      affectedLayers.add(f.maestroLayer);
+    }
+  }
+
+  // SC-CROSS-001: Cross-layer compound risk
+  if (affectedLayers.size >= 3) {
+    const layers = Array.from(affectedLayers).sort().join(', ');
+    crossFindings.push({
+      id: 'SC-CROSS-001',
+      severity: 'HIGH',
+      category: 'cross-layer',
+      title: 'Cross-layer compound attack surface detected',
+      description: `Findings span ${affectedLayers.size} MAESTRO layers (${layers}). Compound attack surfaces enable chained exploits (e.g., supply chain → agent compromise → credential theft).`,
+      evidence: `Affected layers: ${layers}`,
+      remediation: 'Address findings in each affected layer to reduce the compound attack surface. Prioritize layers with CRITICAL/HIGH findings.',
+      autoFixable: false,
+      references: [
+        'https://cloudsecurityalliance.org/blog/2025/02/06/agentic-ai-threat-modeling-framework-maestro',
+      ],
+      owaspAsi: 'ASI10',
+      maestroLayer: 'L6',
+      nistCategory: 'evasion',
+    });
+  }
+
+  return crossFindings;
 }
 
 // ============================================================
@@ -1526,13 +1682,17 @@ export async function runAudit(options: AuditOptions = {}): Promise<AuditReport>
     ...multiFrameworkFindings,
   ];
 
+  // Cross-layer threat detection (runs after all checks)
+  const crossLayerFindings = auditCrossLayerRisk(allFindings);
+  allFindings.push(...crossLayerFindings);
+
   const score = calculateScore(allFindings);
   const summary = computeSummary(allFindings);
 
   return {
     timestamp: new Date().toISOString(),
     openclawVersion: ctx.openclawVersion,
-    secureclawVersion: '2.1.0',
+    secureclawVersion: '2.2.0',
     platform: ctx.platform,
     deploymentMode: ctx.deploymentMode,
     score,

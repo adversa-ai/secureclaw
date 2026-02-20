@@ -4,9 +4,9 @@ Automated security hardening for [OpenClaw](https://openclaw.ai) AI agents.
 
 Developed by [Adversa AI](https://adversa.ai) -- Agentic AI Security and Red Teaming Pioneers.
 
-51 audit checks. 15 behavioral rules. 9 scripts. 4 pattern databases. 5 security frameworks mapped.
+51 audit checks. 15 behavioral rules. 9 scripts. 4 pattern databases. 7 security frameworks mapped.
 
-10/10 OWASP ASI | 10/14 MITRE ATLAS | 4/4 MITRE OpenClaw Cases | 3/3 CoSAI Principles | CSA Singapore
+10/10 OWASP ASI | 10/14 MITRE ATLAS | 4/4 MITRE OpenClaw Cases | 3/3 CoSAI Principles | CSA Singapore | 6/7 CSA MAESTRO Layers | 4/4 NIST AI 100-2 GenAI Types
 
 SecureClaw audits your OpenClaw installation for misconfigurations and known vulnerabilities, applies automated hardening fixes, and gives your agent behavioral security rules that protect against prompt injection, credential theft, supply chain attacks, and privacy leaks.
 
@@ -45,7 +45,7 @@ flowchart LR
 6. [Automated Hardening](#6-automated-hardening)
 7. [Scripts Reference](#7-scripts-reference)
 8. [Pattern Databases](#8-pattern-databases)
-9. [The 12 Agent Rules](#9-the-12-agent-rules)
+9. [The 15 Agent Rules](#9-the-12-agent-rules)
 10. [OWASP ASI Coverage Map](#10-owasp-asi-coverage-map)
 11. [Plugin CLI Reference](#11-plugin-cli-reference)
 12. [Configuration](#12-configuration)
@@ -78,7 +78,7 @@ SecureClaw has two independently useful components:
 
 ### The Plugin (TypeScript)
 
-A full OpenClaw plugin with 51 audit checks, 5 hardening modules, 3 background monitors, and CLI integration. Requires Node.js 18+ and installs via `openclaw plugins install`.
+A full OpenClaw plugin with 56 audit checks, 5 hardening modules, 3 background monitors, and CLI integration. Requires Node.js 18+ and installs via `openclaw plugins install`. Tested on OpenClaw v2026.2.12 and v2026.2.19.
 
 ### The Skill (Bash + JSON)
 
@@ -570,7 +570,7 @@ Contains:
 
 ---
 
-## 9. The 12 Agent Rules
+## 9. The 15 Agent Rules
 
 These rules are loaded into the agent's context via `SKILL.md`. They cost approximately 1,230 tokens and provide behavioral security that infrastructure hardening cannot achieve on its own.
 

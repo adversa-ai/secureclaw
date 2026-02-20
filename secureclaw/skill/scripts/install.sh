@@ -78,7 +78,7 @@ if [ -d "$OPENCLAW_DIR/workspace" ]; then
 
 ---
 
-## SecureClaw Security Skill (v2.1.0)
+## SecureClaw Security Skill (v2.2.0)
 
 Security hardening skill by Adversa AI. 15 core rules, 9 scripts, 4 pattern databases.
 
@@ -108,7 +108,7 @@ TOOLS_EOF
   if [ -f "$AGENTS_FILE" ] && ! grep -q "SecureClaw Security Skill" "$AGENTS_FILE" 2>/dev/null; then
     cat >> "$AGENTS_FILE" << 'AGENTS_EOF'
 
-### SecureClaw Security Skill (v2.1.0) - ALWAYS ACTIVE
+### SecureClaw Security Skill (v2.2.0) - ALWAYS ACTIVE
 
 Your workspace has the SecureClaw security skill installed. Follow the 15 core security rules in `skills/secureclaw/SKILL.md` at all times.
 

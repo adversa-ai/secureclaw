@@ -6,7 +6,7 @@ function makeReport(): AuditReport {
   return {
     timestamp: '2026-02-07T00:00:00Z',
     openclawVersion: '2026.2.0',
-    secureclawVersion: '2.1.0',
+    secureclawVersion: '2.2.0',
     platform: 'darwin-arm64',
     deploymentMode: 'native',
     score: 85,

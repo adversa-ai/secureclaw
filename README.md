@@ -6,9 +6,9 @@ Audit, Hardening and Runtine Security for Openclaw.
 
 Developed by [Adversa AI](https://adversa.ai) -- Agentic AI Security and Red Teaming Pioneers.
 
-51 audit checks. 15 behavioral rules. 9 scripts. 4 pattern databases. 5 security frameworks mapped.
+51 audit checks. 15 behavioral rules. 9 scripts. 4 pattern databases. 7 security frameworks mapped.
 
-10/10 OWASP ASI | 10/14 MITRE ATLAS | 4/4 MITRE OpenClaw Cases | 3/3 CoSAI Principles | CSA Singapore
+10/10 OWASP ASI | 10/14 MITRE ATLAS | 4/4 MITRE OpenClaw Cases | 3/3 CoSAI Principles | CSA Singapore | 6/7 CSA MAESTRO Layers | 4/4 NIST AI 100-2 GenAI Types
 
 SecureClaw is a 360-degree security plugin and skills tahat audits your OpenClaw installation for misconfigurations and known vulnerabilities, applies automated hardening fixes, and gives your agent behavioral security rules that protect against prompt injection, credential theft, supply chain attacks, and privacy leaks.
 
@@ -657,7 +657,7 @@ SecureClaw maps to all 10 categories of the [OWASP Agentic Security Initiative](
 
 ## 11. Multi-Framework Coverage
 
-SecureClaw is the first OpenClaw security tool to formally map controls to five agentic security frameworks.
+SecureClaw is the first OpenClaw security tool to formally map controls to seven agentic security frameworks.
 
 | Framework | Coverage | Notes |
 |-----------|----------|-------|
@@ -666,6 +666,18 @@ SecureClaw is the first OpenClaw security tool to formally map controls to five 
 | MITRE ATLAS OpenClaw Investigation | 4/4 case studies, 14/17 techniques | All published OpenClaw attack scenarios addressed |
 | CoSAI Secure-by-Design Principles | 13/18 sub-requirements | 2 out-of-scope, 3 addressed in v2.1.0 |
 | CSA Singapore Agentic AI Addendum | 8/11 control areas | 2 out-of-scope (testing frameworks) |
+| **CSA MAESTRO** | **6/7 layers, 11/14 threats** | **7-layer agentic AI threat model. All audit checks tagged with MAESTRO layer.** |
+| **NIST AI 100-2 E2025** | **4/4 GenAI attack types, 9/12 subcategories** | **Adversarial ML taxonomy. All checks tagged with NIST attack type.** |
+
+### v2.2.0 Framework Additions
+
+| Addition | Framework | What Was Added |
+|----------|-----------|---------------|
+| MAESTRO layer tags | CSA MAESTRO | Every audit check tagged with MAESTRO layer (L1-L7). Cross-layer threat detection. |
+| NIST attack type tags | NIST AI 100-2 E2025 | Every audit check tagged with NIST GenAI attack type (evasion, poisoning, privacy, misuse). |
+| Cross-layer detection | CSA MAESTRO | Composite check flags when findings span multiple MAESTRO layers simultaneously. |
+| quick-audit.sh tags | MAESTRO + NIST | Shell audit output includes framework tags: `[ASI03\|L4\|evasion]` |
+| SKILL.md mapping | MAESTRO + NIST | Framework attribution comment mapping all 15 rules to MAESTRO layers and NIST types. |
 
 ### v2.1.0 Gap Closures
 

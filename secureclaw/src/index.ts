@@ -24,7 +24,7 @@ import type {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const VERSION = '2.1.0';
+const VERSION = '2.2.0';
 
 // ============================================================
 // Kill Switch (G2 — CSA, CoSAI)
@@ -340,8 +340,12 @@ const secureClawPlugin = {
         }
       } catch (err) {
         api.logger.error(`[SecureClaw] Startup audit failed: ${(err as Error).message}`);
+        api.logger.error(`[SecureClaw] Stack: ${(err as Error).stack}`);
+        // Don't re-throw — let the gateway continue without SecureClaw
       }
     });
+
+    api.logger.info(`[SecureClaw] v${VERSION} plugin registered (56 audit checks)`);
 
     // ── CLI Commands ───────────────────────────────────────────
     api.registerCli(({ program }) => {

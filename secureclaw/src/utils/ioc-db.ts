@@ -1,6 +1,10 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { IOCDatabase } from '../types.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 let cachedDb: IOCDatabase | null = null;
 
@@ -13,13 +17,27 @@ export async function loadIOCDatabase(customPath?: string): Promise<IOCDatabase>
   }
 
   const dbPath = customPath ?? path.resolve(__dirname, '../../ioc/indicators.json');
-  const content = await fs.readFile(dbPath, 'utf-8');
-  const db = JSON.parse(content) as IOCDatabase;
+  try {
+    const content = await fs.readFile(dbPath, 'utf-8');
+    const db = JSON.parse(content) as IOCDatabase;
 
-  if (!customPath) {
-    cachedDb = db;
+    if (!customPath) {
+      cachedDb = db;
+    }
+    return db;
+  } catch {
+    // Return empty database so audit can continue without IOC checks
+    return {
+      version: '0.0.0',
+      last_updated: '',
+      c2_ips: [],
+      malicious_domains: [],
+      malicious_skill_hashes: {},
+      typosquat_patterns: [],
+      dangerous_prerequisite_patterns: [],
+      infostealer_artifacts: { macos: [], linux: [] },
+    };
   }
-  return db;
 }
 
 /**

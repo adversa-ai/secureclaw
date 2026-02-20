@@ -2,7 +2,7 @@
   "id": "secureclaw",
   "name": "SecureClaw",
   "description": "Automated security hardening for OpenClaw",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "configSchema": {
     "type": "object",
     "additionalProperties": false,

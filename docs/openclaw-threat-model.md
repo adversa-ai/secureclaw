@@ -332,7 +332,7 @@ graph TB
         CSA["CSA Singapore<br/>8/11"]
     end
 
-    subgraph SC["SecureClaw v2.1.0"]
+    subgraph SC["SecureClaw v2.2.0"]
         Rules["15 Behavioral Rules"]
         Checks["55 Audit Checks"]
         Hardening["5 Hardening Modules"]
