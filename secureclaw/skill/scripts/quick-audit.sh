@@ -52,15 +52,24 @@ if [ -f "$CONFIG" ]; then
     && chk C "ASI03" "Gateway bind" FAIL "Bound to 0.0.0.0 — exposed to network" \
     || chk C "ASI03" "Gateway bind" PASS
 
-  grep -q '"authToken"' "$CONFIG" 2>/dev/null \
-    && chk C "ASI03" "Gateway authentication" PASS \
-    || chk C "ASI03" "Gateway authentication" FAIL "No auth token — anyone can connect"
+  # Check for authentication - handle both old flat format and new nested format
+  if grep -q '"authToken"' "$CONFIG" 2>/dev/null; then
+    # Old format: "authToken": "..."
+    chk C "ASI03" "Gateway authentication" PASS
+  elif grep -q '"auth"[[:space:]]*:[[:space:]]*{' "$CONFIG" 2>/dev/null && grep -q '"token"' "$CONFIG" 2>/dev/null; then
+    # New format: "auth": { "mode": "token", "token": "..." }
+    chk C "ASI03" "Gateway authentication" PASS
+  else
+    chk C "ASI03" "Gateway authentication" FAIL "No auth token — anyone can connect"
+  fi
 
   # Reverse proxy detection
   if command -v nginx >/dev/null 2>&1 || [ -f /etc/nginx/nginx.conf ] || command -v caddy >/dev/null 2>&1; then
-    grep -q '"authToken"' "$CONFIG" 2>/dev/null \
-      && chk H "ASI03" "Proxy + auth combo" PASS \
-      || chk C "ASI03" "Proxy + auth combo" FAIL "Reverse proxy detected WITHOUT auth — all connections bypass auth"
+    if grep -q '"authToken"' "$CONFIG" 2>/dev/null || (grep -q '"auth"[[:space:]]*:[[:space:]]*{' "$CONFIG" 2>/dev/null && grep -q '"token"' "$CONFIG" 2>/dev/null); then
+      chk H "ASI03" "Proxy + auth combo" PASS
+    else
+      chk C "ASI03" "Proxy + auth combo" FAIL "Reverse proxy detected WITHOUT auth — all connections bypass auth"
+    fi
   fi
 else
   chk C "ASI03" "Gateway config" FAIL "No config file found — cannot verify"
