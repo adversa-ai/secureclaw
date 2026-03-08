@@ -27,6 +27,15 @@ echo "🔒 SecureClaw — Quick Hardening"
 echo "================================"
 N=0
 
+BACKUP_TIMESTAMP=$(date +%s)
+BACKUP_DIR="$OPENCLAW_DIR/.secureclaw/backups/$BACKUP_TIMESTAMP"
+mkdir -p "$BACKUP_DIR"
+[ -f "$CONFIG" ] && cp "$CONFIG" "$BACKUP_DIR/$(basename "$CONFIG")"
+[ -f "$WORKSPACE_DIR/SOUL.md" ] && cp "$WORKSPACE_DIR/SOUL.md" "$BACKUP_DIR/SOUL.md"
+stat -c '%a %n' "$OPENCLAW_DIR" > "$BACKUP_DIR/permissions.txt" 2>/dev/null || \
+  stat -f '%Lp %N' "$OPENCLAW_DIR" > "$BACKUP_DIR/permissions.txt" 2>/dev/null || true
+echo "📁 Backup: $BACKUP_DIR"
+
 # Portable permission reader (Linux first, then macOS, with output validation)
 get_perms() {
   local p
@@ -101,7 +110,6 @@ fi
 # Privacy directives in SOUL.md
 if [ -f "$WORKSPACE_DIR/SOUL.md" ] && ! grep -q "SecureClaw Privacy" "$WORKSPACE_DIR/SOUL.md" 2>/dev/null; then
   echo "🔧 Adding: privacy directives to SOUL.md"
-  cp "$WORKSPACE_DIR/SOUL.md" "$WORKSPACE_DIR/SOUL.md.bak.$(date +%s)"
   cat >> "$WORKSPACE_DIR/SOUL.md" << 'EOF'
 
 ## SecureClaw Privacy Directives
@@ -146,5 +154,7 @@ fi
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "✅ Applied $N hardening changes"
+echo "📁 Backup at: $BACKUP_DIR"
+echo "↩️  To rollback: cp $BACKUP_DIR/$(basename "$CONFIG") $CONFIG"
 echo "⚠️  Restart gateway for changes to take effect"
 echo "Full protection: openclaw plugins install secureclaw"
