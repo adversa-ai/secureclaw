@@ -17,7 +17,7 @@ echo "Time: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 echo ""
 
 # If plugin available, delegate to it
-if command -v openclaw >/dev/null 2>&1 && openclaw secureclaw status --help >/dev/null 2>&1; then
+if command -v openclaw >/dev/null 2>&1 && openclaw secureclaw status >/dev/null 2>&1; then
   echo "🔒 Plugin detected — running plugin audit..."
   openclaw secureclaw audit
   exit 0

@@ -175,7 +175,7 @@ if [ -f "$CONFIG" ]; then
 fi
 
 # ── Plugin / Kill Switch (ASI10, ASI08) [MAESTRO:L5] [NIST:misuse] ──
-if command -v openclaw >/dev/null 2>&1 && openclaw secureclaw audit --help >/dev/null 2>&1; then
+if command -v openclaw >/dev/null 2>&1 && openclaw secureclaw status >/dev/null 2>&1; then
   chk M "ASI10|L5" "SecureClaw plugin (kill switch)" PASS
 else
   chk M "ASI10|L5|misuse" "SecureClaw plugin (kill switch)" FAIL "Not installed — no runtime enforcement or kill switch"
