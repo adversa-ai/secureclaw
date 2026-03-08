@@ -10,6 +10,19 @@ for dir in "$HOME/.openclaw" "$HOME/.moltbot" "$HOME/.clawdbot" "$HOME/clawd"; d
 done
 [ -z "$OPENCLAW_DIR" ] && echo "❌ No OpenClaw found" && exit 1
 
+CONFIG="$OPENCLAW_DIR/openclaw.json"
+for f in moltbot.json clawdbot.json; do
+  [ ! -f "$CONFIG" ] && [ -f "$OPENCLAW_DIR/$f" ] && CONFIG="$OPENCLAW_DIR/$f"
+done
+
+# Resolve workspace dir from config, fallback to default
+WORKSPACE_DIR="$OPENCLAW_DIR/workspace"
+if [ -f "$CONFIG" ]; then
+  _ws=$(grep -o '"workspace"[[:space:]]*:[[:space:]]*"[^"]*"' "$CONFIG" 2>/dev/null \
+        | grep -o '"[^"]*"$' | tr -d '"' || true)
+  [ -n "$_ws" ] && WORKSPACE_DIR="$_ws"
+fi
+
 BASELINE_DIR="$OPENCLAW_DIR/.secureclaw/baselines"
 REBASELINE="${1:-}"
 
@@ -19,8 +32,8 @@ if [ ! -d "$BASELINE_DIR" ] || [ "$REBASELINE" = "--rebaseline" ]; then
   mkdir -p "$BASELINE_DIR"
   CREATED=0
   for f in SOUL.md IDENTITY.md TOOLS.md AGENTS.md SECURITY.md; do
-    if [ -f "$OPENCLAW_DIR/$f" ]; then
-      if shasum -a 256 "$OPENCLAW_DIR/$f" > "$BASELINE_DIR/$f.sha256"; then
+    if [ -f "$WORKSPACE_DIR/$f" ]; then
+      if shasum -a 256 "$WORKSPACE_DIR/$f" > "$BASELINE_DIR/$f.sha256"; then
         CREATED=$((CREATED + 1))
       else
         echo "⚠️  Failed to hash $f — skipping"
@@ -43,9 +56,9 @@ MISSING=0
 CHECKED=0
 
 for f in SOUL.md IDENTITY.md TOOLS.md AGENTS.md SECURITY.md; do
-  if [ -f "$BASELINE_DIR/$f.sha256" ] && [ -f "$OPENCLAW_DIR/$f" ]; then
+  if [ -f "$BASELINE_DIR/$f.sha256" ] && [ -f "$WORKSPACE_DIR/$f" ]; then
     EXPECTED=$(awk '{print $1}' "$BASELINE_DIR/$f.sha256")
-    CURRENT=$(shasum -a 256 "$OPENCLAW_DIR/$f" | awk '{print $1}')
+    CURRENT=$(shasum -a 256 "$WORKSPACE_DIR/$f" | awk '{print $1}')
     CHECKED=$((CHECKED + 1))
     if [ "$EXPECTED" = "$CURRENT" ]; then
       echo "✅ $f — intact"
@@ -55,9 +68,9 @@ for f in SOUL.md IDENTITY.md TOOLS.md AGENTS.md SECURITY.md; do
       echo "   Current:  ${CURRENT:0:16}..."
       TAMPERED=$((TAMPERED+1))
     fi
-  elif [ -f "$OPENCLAW_DIR/$f" ] && [ ! -f "$BASELINE_DIR/$f.sha256" ]; then
+  elif [ -f "$WORKSPACE_DIR/$f" ] && [ ! -f "$BASELINE_DIR/$f.sha256" ]; then
     echo "⚠️  $f — no baseline (run with --rebaseline)"
-  elif [ -f "$BASELINE_DIR/$f.sha256" ] && [ ! -f "$OPENCLAW_DIR/$f" ]; then
+  elif [ -f "$BASELINE_DIR/$f.sha256" ] && [ ! -f "$WORKSPACE_DIR/$f" ]; then
     echo "🚨 $f — DELETED (baseline exists but file is missing!)"
     MISSING=$((MISSING + 1))
   fi

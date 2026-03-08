@@ -16,6 +16,14 @@ for f in moltbot.json clawdbot.json; do
   [ ! -f "$CONFIG" ] && [ -f "$OPENCLAW_DIR/$f" ] && CONFIG="$OPENCLAW_DIR/$f"
 done
 
+# Resolve workspace dir from config, fallback to default
+WORKSPACE_DIR="$OPENCLAW_DIR/workspace"
+if [ -f "$CONFIG" ]; then
+  _ws=$(grep -o '"workspace"[[:space:]]*:[[:space:]]*"[^"]*"' "$CONFIG" 2>/dev/null \
+        | grep -o '"[^"]*"$' | tr -d '"' || true)
+  [ -n "$_ws" ] && WORKSPACE_DIR="$_ws"
+fi
+
 echo "🔒 SecureClaw Security Audit"
 echo "============================"
 echo "📁 $OPENCLAW_DIR"
@@ -133,8 +141,8 @@ fi
 
 # ── Memory Integrity (ASI06) [MAESTRO:L2] [NIST:poisoning] ──
 for f in SOUL.md IDENTITY.md TOOLS.md AGENTS.md SECURITY.md; do
-  if [ -f "$OPENCLAW_DIR/$f" ]; then
-    MOD=$(find "$OPENCLAW_DIR/$f" -mmin -60 -print 2>/dev/null || true)
+  if [ -f "$WORKSPACE_DIR/$f" ]; then
+    MOD=$(find "$WORKSPACE_DIR/$f" -mmin -60 -print 2>/dev/null || true)
     [ -z "$MOD" ] \
       && chk M "ASI06|L2" "$f integrity" PASS \
       || chk M "ASI06|L2|poisoning" "$f integrity" FAIL "Modified in last hour — verify intentional"
@@ -153,8 +161,8 @@ if [ -f "$CONFIG" ]; then
 fi
 
 # ── Privacy (ASI09, Security 101 #6 / Confession Booth) [MAESTRO:L2] [NIST:privacy] ──
-if [ -f "$OPENCLAW_DIR/SOUL.md" ]; then
-  grep -qi 'never.*name\|privacy\|stranger test\|secureclaw' "$OPENCLAW_DIR/SOUL.md" 2>/dev/null \
+if [ -f "$WORKSPACE_DIR/SOUL.md" ]; then
+  grep -qi 'never.*name\|privacy\|stranger test\|secureclaw' "$WORKSPACE_DIR/SOUL.md" 2>/dev/null \
     && chk H "ASI09|L2" "Privacy directives" PASS \
     || chk H "ASI09|L2|privacy" "Privacy directives" FAIL "No privacy rules in SOUL.md — PII leak risk"
 fi
@@ -182,7 +190,7 @@ if [ -f "$OPENCLAW_DIR/.secureclaw/killswitch" ]; then
 fi
 
 # ── Memory Trust / Injection Detection (G1 — MITRE ATLAS, CoSAI) [MAESTRO:L2] [NIST:poisoning] ──
-STATE_DIR="$OPENCLAW_DIR"
+STATE_DIR="$WORKSPACE_DIR"
 for mf in SOUL.md IDENTITY.md TOOLS.md AGENTS.md; do
   if [ -f "$STATE_DIR/$mf" ]; then
     if grep -qiE "(ignore previous|new instructions|system prompt override|you are now|disregard|forget your rules)" "$STATE_DIR/$mf" 2>/dev/null; then

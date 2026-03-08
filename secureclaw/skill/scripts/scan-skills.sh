@@ -12,8 +12,18 @@ for dir in "$HOME/.openclaw" "$HOME/.moltbot" "$HOME/.clawdbot" "$HOME/clawd"; d
 done
 [ -z "$OPENCLAW_DIR" ] && echo "❌ No OpenClaw found" && exit 1
 
-SCAN_DIR="${1:-$OPENCLAW_DIR/skills}"
-[ ! -d "$SCAN_DIR" ] && echo "✅ Nothing to scan at $SCAN_DIR" && exit 0
+CONFIG="$OPENCLAW_DIR/openclaw.json"
+for f in moltbot.json clawdbot.json; do
+  [ ! -f "$CONFIG" ] && [ -f "$OPENCLAW_DIR/$f" ] && CONFIG="$OPENCLAW_DIR/$f"
+done
+
+# Resolve workspace dir from config, fallback to default
+WORKSPACE_DIR="$OPENCLAW_DIR/workspace"
+if [ -f "$CONFIG" ]; then
+  _ws=$(grep -o '"workspace"[[:space:]]*:[[:space:]]*"[^"]*"' "$CONFIG" 2>/dev/null \
+        | grep -o '"[^"]*"$' | tr -d '"' || true)
+  [ -n "$_ws" ] && WORKSPACE_DIR="$_ws"
+fi
 
 echo "🔒 SecureClaw — Skill Supply Chain Scan"
 echo "========================================"
@@ -60,16 +70,30 @@ scan_dir() {
   fi
 }
 
-for skill_dir in "$SCAN_DIR"/*/; do
-  [ ! -d "$skill_dir" ] && continue
-  # Skip ourselves — our configs contain the detection patterns we're scanning for
-  [ "$(basename "$skill_dir")" = "secureclaw" ] && SKIPPED=$((SKIPPED+1)) && continue
-  scan_dir "$skill_dir" "$(basename "$skill_dir")"
-done
-
-# If scanning a single directory (not a skills parent) — only trigger if no subdirs were found at all
-if [ $T -eq 0 ] && [ $SKIPPED -eq 0 ] && [ -d "$SCAN_DIR" ]; then
-  scan_dir "$SCAN_DIR" "$(basename "$SCAN_DIR")"
+if [ "${1:-}" != "" ]; then
+  # Custom path provided — preserve original single-dir behavior
+  SCAN_DIR="$1"
+  [ ! -d "$SCAN_DIR" ] && echo "✅ Nothing to scan at $SCAN_DIR" && exit 0
+  for skill_dir in "$SCAN_DIR"/*/; do
+    [ ! -d "$skill_dir" ] && continue
+    [ "$(basename "$skill_dir")" = "secureclaw" ] && SKIPPED=$((SKIPPED+1)) && continue
+    scan_dir "$skill_dir" "$(basename "$skill_dir")"
+  done
+  # If scanning a single skill dir directly (no subdirs) — scan it as-is
+  if [ $T -eq 0 ] && [ $SKIPPED -eq 0 ]; then
+    scan_dir "$SCAN_DIR" "$(basename "$SCAN_DIR")"
+  fi
+else
+  # Default: scan both primary and workspace skill locations
+  for SCAN_BASE in "$OPENCLAW_DIR/skills" "$WORKSPACE_DIR/skills"; do
+    [ -d "$SCAN_BASE" ] || continue
+    for skill_dir in "$SCAN_BASE"/*/; do
+      [ ! -d "$skill_dir" ] && continue
+      # Skip ourselves — our configs contain the detection patterns we're scanning for
+      [ "$(basename "$skill_dir")" = "secureclaw" ] && SKIPPED=$((SKIPPED+1)) && continue
+      scan_dir "$skill_dir" "$(basename "$skill_dir")"
+    done
+  done
 fi
 
 echo ""
