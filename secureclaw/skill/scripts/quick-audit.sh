@@ -149,7 +149,11 @@ for f in SOUL.md IDENTITY.md TOOLS.md AGENTS.md SECURITY.md; do
   fi
 done
 
-[ -d "$OPENCLAW_DIR/.secureclaw/baselines" ] \
+BASELINE_COUNT=0
+for f in SOUL.md IDENTITY.md TOOLS.md AGENTS.md SECURITY.md; do
+  [ -f "$OPENCLAW_DIR/.secureclaw/baselines/$f.sha256" ] && BASELINE_COUNT=$((BASELINE_COUNT+1))
+done
+[ $BASELINE_COUNT -gt 0 ] \
   && chk M "ASI06|L2" "Cognitive file baselines" PASS \
   || chk M "ASI06|L2|poisoning" "Cognitive file baselines" FAIL "No baselines — run quick-harden.sh"
 
