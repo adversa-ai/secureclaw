@@ -174,11 +174,37 @@ The plugin includes the skill. After installing, run `npx openclaw secureclaw sk
 
 ### Option D: ClawHub
 
-Install the skill directly from [ClawHub](https://clawhub.ai/):
+Install the skill via the [ClawHub](https://clawhub.ai/) CLI. You must pass `--workdir` and `--dir` so the skill lands in the directory OpenClaw actually scans — clawhub defaults to `./skills/` relative to cwd, which OpenClaw ignores.
 
-1. Search for **SecureClaw** on ClawHub
-2. Click Install
-3. The skill is automatically deployed to your agent's workspace
+```sh
+clawhub install secureclaw-skill --workdir ~/.openclaw --dir skills
+```
+
+If you use Moltbot or Clawdbot, substitute the appropriate directory (`~/.moltbot` or `~/.clawdbot`).
+
+To avoid passing flags every time, set `CLAWHUB_WORKDIR` in your shell profile:
+
+```sh
+export CLAWHUB_WORKDIR=~/.openclaw
+clawhub install secureclaw-skill --dir skills
+```
+
+**Uninstalling via clawhub** requires the same flags:
+
+```sh
+clawhub uninstall secureclaw-skill --workdir ~/.openclaw --dir skills
+```
+
+> **Note:** If `OPENCLAW_STATE_DIR` is set in your environment and points to your OpenClaw directory, clawhub may detect the workspace automatically without flags.
+
+**Fix permissions after install:** clawhub installs files at `664` (world-readable, group-writable). SecureClaw includes a post-install hook (`hooks.postInstall` in `skill.json`) that clawhub runs automatically to correct this. If your clawhub version does not run hooks, fix permissions manually:
+
+```sh
+SKILL=~/.openclaw/skills/secureclaw-skill
+chmod 700 "$SKILL/scripts/"*.sh
+chmod 600 "$SKILL/configs/"*.json
+chmod 644 "$SKILL/SKILL.md" "$SKILL/skill.json"
+```
 
 ### What the Installer Does
 
@@ -275,6 +301,8 @@ MED   [ASI06] Cognitive file baselines -- No baselines -- run quick-harden.sh
 ```
 
 The final summary shows a score from 0 to 100 calculated as: `(passed / total) * 100`.
+
+> **Note:** The skill audit reflects the current security posture of the agent configuration — it does not distinguish which tool produced each passing result. In a full-stack installation (skill + plugin), plugin harden actions (e.g. setting sandbox isolation, bind address) will improve the skill audit score. Scores are not directly comparable across installation modes (skill-only vs full-stack).
 
 **Exit codes:**
 
@@ -925,13 +953,39 @@ After uninstalling, manually edit `SOUL.md` to remove the `## SecureClaw Privacy
 
 ### Remove the plugin
 
+The correct removal steps depend on how the plugin was installed.
+
+**If installed via npm (global):**
+
 ```sh
+# OpenClaw has no install record for globally-installed npm packages,
+# so openclaw plugins uninstall will not work. Remove manually:
+npm uninstall -g @adversa/secureclaw
+rm -rf ~/.openclaw/extensions/secureclaw
+openclaw gateway stop && openclaw gateway start
+```
+
+**If installed via npm (local) or from source:**
+
+```sh
+# Remove the OpenClaw config entry and install record
 npx openclaw plugins uninstall secureclaw
+
+# The uninstall command does NOT delete the extension directory.
+# Remove it manually to prevent the plugin from being auto-loaded on next start:
+rm -rf ~/.openclaw/extensions/secureclaw
+openclaw gateway stop && openclaw gateway start
+```
+
+Verify the plugin is gone after restarting:
+
+```sh
+openclaw plugins list | grep -i secureclaw  # should return empty
 ```
 
 ### Remove both
 
-Uninstall the plugin first, then remove the skill. The plugin does not depend on the skill, and the skill does not depend on the plugin. They operate independently.
+Uninstall the plugin first using the steps above, then remove the skill. The plugin does not depend on the skill, and the skill does not depend on the plugin. They operate independently.
 
 ---
 
