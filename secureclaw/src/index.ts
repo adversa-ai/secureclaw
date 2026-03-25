@@ -392,7 +392,8 @@ const secureClawPlugin = {
           const result = await harden({ full: !!opts['full'], interactive: !opts['full'], context: ctx });
           console.log(`Hardening complete. Backup at: ${result.backupDir}`);
           for (const r of result.results) {
-            console.log(`  ${r.module}: ${r.applied.length} actions applied, ${r.errors.length} errors`);
+            const noteSuffix = r.note ? ` (${r.note})` : '';
+            console.log(`  ${r.module}: ${r.applied.length} actions applied, ${r.errors.length} errors${noteSuffix}`);
           }
         });
 
@@ -415,11 +416,29 @@ const secureClawPlugin = {
 
       sc.command('scan-skill')
         .description('Scan a skill for security issues')
-        .argument('<name>', 'Skill name to scan')
+        .argument('<name>', 'Skill name or absolute path to skill directory')
         .action(async (...args: unknown[]) => {
-          const skillName = args[0] as string;
+          const nameOrPath = args[0] as string;
           const stateDir = process.env['OPENCLAW_STATE_DIR'] ?? path.join(os.homedir(), '.openclaw');
-          const skillDir = path.join(stateDir, 'skills', skillName);
+
+          let skillDir: string;
+          let skillName: string;
+          if (path.isAbsolute(nameOrPath)) {
+            skillDir = nameOrPath;
+            skillName = path.basename(nameOrPath);
+          } else {
+            // fall back to skills/ if not found there
+            const workspaceCandidate = path.join(stateDir, 'workspace', 'skills', nameOrPath);
+            const primaryCandidate = path.join(stateDir, 'skills', nameOrPath);
+            try {
+              await fs.access(workspaceCandidate);
+              skillDir = workspaceCandidate;
+            } catch {
+              skillDir = primaryCandidate;
+            }
+            skillName = nameOrPath;
+          }
+
           const result = await scanSkill(skillDir, skillName);
           if (result.safe) {
             console.log(`Skill "${skillName}" passed security scan.`);
@@ -439,6 +458,69 @@ const secureClawPlugin = {
           console.log(`Recent Alerts: ${status.alerts.length}`);
           for (const alert of status.alerts.slice(-5)) {
             console.log(`  [${alert.severity}] ${alert.message}`);
+          }
+        });
+
+      const mon = sc.command('monitor')
+        .description('Manage background security monitors');
+
+      mon.command('start')
+        .description('Start all background monitors')
+        .option('--credential', 'Start credential monitor only')
+        .option('--memory', 'Start memory integrity monitor only')
+        .option('--cost', 'Start cost monitor only')
+        .action(async (opts: Record<string, boolean>) => {
+          const stateDir = process.env['OPENCLAW_STATE_DIR'] ?? path.join(os.homedir(), '.openclaw');
+          const all = !opts['credential'] && !opts['memory'] && !opts['cost'];
+          if (all || opts['credential']) {
+            await credentialMonitor.start(stateDir);
+            console.log(`  credential-monitor: ${credentialMonitor.status().running ? 'started' : 'already running'}`);
+          }
+          if (all || opts['memory']) {
+            await memoryIntegrityMonitor.start(stateDir);
+            console.log(`  memory-integrity:   ${memoryIntegrityMonitor.status().running ? 'started' : 'already running'}`);
+          }
+          if (all || opts['cost']) {
+            await costMonitor.start(stateDir);
+            console.log(`  cost-monitor:       ${costMonitor.status().running ? 'started' : 'already running'}`);
+          }
+        });
+
+      mon.command('stop')
+        .description('Stop all background monitors')
+        .option('--credential', 'Stop credential monitor only')
+        .option('--memory', 'Stop memory integrity monitor only')
+        .option('--cost', 'Stop cost monitor only')
+        .action(async (opts: Record<string, boolean>) => {
+          const all = !opts['credential'] && !opts['memory'] && !opts['cost'];
+          if (all || opts['credential']) {
+            await credentialMonitor.stop();
+            console.log('  credential-monitor: stopped');
+          }
+          if (all || opts['memory']) {
+            await memoryIntegrityMonitor.stop();
+            console.log('  memory-integrity:   stopped');
+          }
+          if (all || opts['cost']) {
+            await costMonitor.stop();
+            console.log('  cost-monitor:       stopped');
+          }
+        });
+
+      mon.command('status')
+        .description('Show status and recent alerts for all monitors')
+        .action(() => {
+          const monitors = [
+            { name: 'credential-monitor', m: credentialMonitor },
+            { name: 'memory-integrity',   m: memoryIntegrityMonitor },
+            { name: 'cost-monitor',       m: costMonitor },
+          ];
+          for (const { name, m } of monitors) {
+            const s = m.status();
+            console.log(`${name}: ${s.running ? 'running' : 'stopped'} | alerts: ${s.alerts.length}`);
+            for (const alert of s.alerts.slice(-3)) {
+              console.log(`  [${alert.severity}] ${alert.message}`);
+            }
           }
         });
 
@@ -519,6 +601,103 @@ const secureClawPlugin = {
             // Script exits non-zero if checks fail — expected
           }
         });
+
+      // OpenClaw's config validator rejects unknown namespaces, so we write
+      // the secureclaw block directly into openclaw.json instead of going
+      // through `openclaw config set`.
+
+      const ALLOWED_CONFIG_KEYS = new Set([
+        'failureMode', 'riskProfile',
+        'cost.hourlyLimitUsd', 'cost.dailyLimitUsd', 'cost.monthlyLimitUsd',
+        'cost.circuitBreakerEnabled',
+        'monitors.credentials', 'monitors.memory', 'monitors.skills', 'monitors.cost',
+        'memory.integrityChecks', 'memory.promptInjectionScan', 'memory.quarantineEnabled',
+        'behavioral.baselineEnabled', 'behavioral.deviationThreshold', 'behavioral.windowMinutes',
+      ]);
+
+      async function readOpenclaJson(stateDir: string): Promise<Record<string, unknown>> {
+        try {
+          return JSON.parse(await fs.readFile(path.join(stateDir, 'openclaw.json'), 'utf-8'));
+        } catch {
+          return {};
+        }
+      }
+
+      async function writeOpenclawJson(stateDir: string, config: Record<string, unknown>): Promise<void> {
+        await fs.writeFile(path.join(stateDir, 'openclaw.json'), JSON.stringify(config, null, 2), 'utf-8');
+      }
+
+      function parseConfigValue(raw: string): unknown {
+        if (raw === 'true') return true;
+        if (raw === 'false') return false;
+        const n = Number(raw);
+        if (!isNaN(n) && raw.trim() !== '') return n;
+        return raw;
+      }
+
+      const cfg = sc.command('config')
+        .description('Get or set SecureClaw plugin configuration');
+
+      cfg.command('set')
+        .description('Set a config value (writes directly to openclaw.json)')
+        .argument('<key>', 'Key to set, e.g. failureMode or cost.hourlyLimitUsd')
+        .argument('<value>', 'Value to set')
+        .action(async (key: string, value: string) => {
+          const normalKey = key.startsWith('secureclaw.') ? key.slice('secureclaw.'.length) : key;
+          if (!ALLOWED_CONFIG_KEYS.has(normalKey)) {
+            console.error(`Unknown key: ${normalKey}`);
+            console.error(`Valid keys: ${[...ALLOWED_CONFIG_KEYS].join(', ')}`);
+            process.exit(1);
+          }
+          const stateDir = process.env['OPENCLAW_STATE_DIR'] ?? path.join(os.homedir(), '.openclaw');
+          const config = await readOpenclaJson(stateDir);
+          if (!config['secureclaw'] || typeof config['secureclaw'] !== 'object') {
+            config['secureclaw'] = {};
+          }
+          const sc_cfg = config['secureclaw'] as Record<string, unknown>;
+          const parsed = parseConfigValue(value);
+          const parts = normalKey.split('.');
+          if (parts.length === 1) {
+            sc_cfg[parts[0]] = parsed;
+          } else {
+            if (!sc_cfg[parts[0]] || typeof sc_cfg[parts[0]] !== 'object') {
+              sc_cfg[parts[0]] = {};
+            }
+            (sc_cfg[parts[0]] as Record<string, unknown>)[parts[1]] = parsed;
+          }
+          await writeOpenclawJson(stateDir, config);
+          console.log(`Set secureclaw.${normalKey} = ${JSON.stringify(parsed)}`);
+        });
+
+      cfg.command('get')
+        .description('Get a config value')
+        .argument('<key>', 'Key to get, e.g. failureMode or cost.hourlyLimitUsd')
+        .action(async (key: string) => {
+          const normalKey = key.startsWith('secureclaw.') ? key.slice('secureclaw.'.length) : key;
+          const stateDir = process.env['OPENCLAW_STATE_DIR'] ?? path.join(os.homedir(), '.openclaw');
+          const config = await readOpenclaJson(stateDir);
+          const sc_cfg = (config['secureclaw'] ?? {}) as Record<string, unknown>;
+          const parts = normalKey.split('.');
+          const val = parts.length === 1
+            ? sc_cfg[parts[0]]
+            : (sc_cfg[parts[0]] as Record<string, unknown> | undefined)?.[parts[1]];
+          console.log(val === undefined
+            ? `secureclaw.${normalKey} = (not set)`
+            : `secureclaw.${normalKey} = ${JSON.stringify(val)}`);
+        });
+
+      cfg.command('list')
+        .description('Show all SecureClaw config values')
+        .action(async () => {
+          const stateDir = process.env['OPENCLAW_STATE_DIR'] ?? path.join(os.homedir(), '.openclaw');
+          const config = await readOpenclaJson(stateDir);
+          if (!config['secureclaw']) {
+            console.log('No secureclaw config set. Use "secureclaw config set <key> <value>" to configure.');
+            console.log(`Valid keys: ${[...ALLOWED_CONFIG_KEYS].join(', ')}`);
+          } else {
+            console.log(JSON.stringify(config['secureclaw'], null, 2));
+          }
+        });
     }, { commands: ['secureclaw'] });
   },
 };
@@ -594,7 +773,8 @@ export const legacyPlugin: SecureClawPlugin = {
       const result = await harden({ full, interactive: !full, context: ctx });
       console.log(`Hardening complete. Backup at: ${result.backupDir}`);
       for (const r of result.results) {
-        console.log(`  ${r.module}: ${r.applied.length} actions applied, ${r.errors.length} errors`);
+        const noteSuffix = r.note ? ` (${r.note})` : '';
+        console.log(`  ${r.module}: ${r.applied.length} actions applied, ${r.errors.length} errors${noteSuffix}`);
       }
     },
     'secureclaw status': async () => {

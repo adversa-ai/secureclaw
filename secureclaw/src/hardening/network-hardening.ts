@@ -154,7 +154,13 @@ export const networkHardening: HardeningModule = {
       errors.push(`Network hardening error: ${err instanceof Error ? err.message : String(err)}`);
     }
 
-    return { module: 'network-hardening', applied, skipped, errors };
+    return {
+      module: 'network-hardening',
+      applied,
+      skipped,
+      errors,
+      note: applied.length > 0 ? 'Files generated for manual review — not auto-applied' : undefined,
+    };
   },
 
   async rollback(backupDir: string): Promise<void> {

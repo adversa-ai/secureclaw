@@ -297,6 +297,7 @@ export interface HardeningResult {
   applied: HardeningAction[];
   skipped: HardeningAction[];
   errors: string[];
+  note?: string;
 }
 
 /** A single hardening action taken */
