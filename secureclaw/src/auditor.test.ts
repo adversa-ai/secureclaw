@@ -462,18 +462,18 @@ describe('auditor', () => {
       expect(f[0].severity).toBe('HIGH');
     });
 
-    it('flags sandbox mode not all as MEDIUM', async () => {
+    it('flags missing tools.exec.host sandbox as MEDIUM', async () => {
       const ctx = createMockContext({
-        config: { sandbox: { mode: 'off' } },
+        config: {},
       });
       const findings = await auditExecution(ctx);
       const f = findings.filter((f) => f.id === 'SC-EXEC-003');
       expect(f).toHaveLength(1);
     });
 
-    it('does not flag sandbox mode all', async () => {
+    it('does not flag SC-EXEC-003 when tools.exec.host is sandbox', async () => {
       const ctx = createMockContext({
-        config: { sandbox: { mode: 'all' } },
+        config: { tools: { exec: { host: 'sandbox' } } },
       });
       const findings = await auditExecution(ctx);
       const f = findings.filter((f) => f.id === 'SC-EXEC-003');

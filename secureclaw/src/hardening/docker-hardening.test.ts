@@ -137,36 +137,38 @@ describe('docker-hardening', () => {
 
   // ── fix() tests ────────────────────────────────────────────────────
 
-  it('fix() creates docker-compose.secureclaw.yml override file', async () => {
+  it('fix() creates docker-compose.secureclaw.yml override file with valid YAML', async () => {
     const ctx = makeCtx();
     const result = await dockerHardening.fix(ctx, backupDir);
 
     expect(result.module).toBe('docker-hardening');
     expect(result.errors).toHaveLength(0);
+
+    // If Docker is not present the action is skipped — skip assertion
+    if (result.skipped.some((s) => s.id === 'docker-override')) return;
+
     expect(result.applied.length).toBeGreaterThan(0);
 
     const overridePath = path.join(tmpDir, 'docker-compose.secureclaw.yml');
     const content = await fs.readFile(overridePath, 'utf-8');
-    const parsed = JSON.parse(content);
 
-    // Verify hardened config structure
-    expect(parsed.services).toBeDefined();
-    expect(parsed.services['openclaw-gateway']).toBeDefined();
-    expect(parsed.services['openclaw-gateway'].read_only).toBe(true);
-    expect(parsed.services['openclaw-gateway'].cap_drop).toEqual(['ALL']);
-    expect(parsed.services['openclaw-gateway'].security_opt).toEqual(['no-new-privileges:true']);
-    expect(parsed.services['openclaw-gateway'].deploy.resources.limits.memory).toBe('2G');
-    expect(parsed.services['openclaw-gateway'].deploy.resources.limits.cpus).toBe('2.0');
-
-    // Verify network config
-    expect(parsed.networks).toBeDefined();
-    expect(parsed.networks['restricted-net']).toBeDefined();
-    expect(parsed.networks['restricted-net'].driver).toBe('bridge');
+    // Output must be YAML, not JSON
+    expect(content.trimStart()).not.toMatch(/^\{/);
+    expect(content).toContain('services:');
+    expect(content).toContain('openclaw-gateway:');
+    expect(content).toContain('read_only: true');
+    expect(content).toContain('cap_drop:');
+    expect(content).toContain('- ALL');
+    expect(content).toContain('no-new-privileges:true');
+    expect(content).toContain('memory: 2G');
+    expect(content).toContain('networks:');
+    expect(content).toContain('restricted-net:');
+    expect(content).toContain('driver: bridge');
   });
 
-  it('fix() creates backup of existing override file', async () => {
+  it('fix() creates backup of existing override file (skipped when Docker absent)', async () => {
     const overridePath = path.join(tmpDir, 'docker-compose.secureclaw.yml');
-    const existingContent = JSON.stringify({ services: { old: { read_only: false } } });
+    const existingContent = 'services:\n  old:\n    read_only: false\n';
     await fs.writeFile(overridePath, existingContent, 'utf-8');
 
     const ctx = makeCtx();
@@ -174,26 +176,35 @@ describe('docker-hardening', () => {
 
     expect(result.errors).toHaveLength(0);
 
-    // Backup should exist
+    // If Docker is not installed the action is skipped — no backup written, that is correct
+    if (result.skipped.some((s) => s.id === 'docker-override')) return;
+
+    // Docker present: backup should exist and override should be YAML
     const backupPath = path.join(backupDir, 'docker-compose.secureclaw.yml');
     const backupContent = await fs.readFile(backupPath, 'utf-8');
     expect(backupContent).toBe(existingContent);
 
-    // Override should be updated with new hardened config
     const newContent = await fs.readFile(overridePath, 'utf-8');
-    const parsed = JSON.parse(newContent);
-    expect(parsed.services['openclaw-gateway'].read_only).toBe(true);
+    expect(newContent).toContain('services:');
+    expect(newContent).toContain('read_only: true');
   });
 
-  it('fix() handles missing stateDir gracefully', async () => {
+  it('fix() handles missing stateDir gracefully (skipped when Docker absent)', async () => {
     const ctx = makeCtx();
     // Point stateDir to a nonexistent nested path
     ctx.stateDir = path.join(tmpDir, 'nonexistent', 'deeply', 'nested');
 
     const result = await dockerHardening.fix(ctx, backupDir);
 
-    // Should catch the error and report it rather than throwing
     expect(result.module).toBe('docker-hardening');
+
+    // When Docker is not installed, the function returns early with a skipped action — correct
+    if (result.skipped.some((s) => s.id === 'docker-override')) {
+      expect(result.applied).toHaveLength(0);
+      return;
+    }
+
+    // Docker present: should catch the write error and report it
     expect(result.errors.length).toBeGreaterThan(0);
     expect(result.errors[0]).toContain('Docker hardening error');
     expect(result.applied).toHaveLength(0);

@@ -129,11 +129,12 @@ describe('config-hardening', () => {
     expect(finding!.autoFixable).toBe(false);
   });
 
-  it('check() reports sandbox.mode as non-auto-fixable', async () => {
-    const ctx = makeCtx({ sandbox: { mode: 'off' } });
+  it('check() reports missing sandbox isolation as auto-fixable (tools.exec.host)', async () => {
+    // SC-EXEC-003 checks tools.exec.host !== 'sandbox'; fix sets that key, so autoFixable=true
+    const ctx = makeCtx({});
     const findings = await configHardening.check(ctx);
     const finding = findings.find(f => f.id === 'SC-EXEC-003');
     expect(finding).toBeDefined();
-    expect(finding!.autoFixable).toBe(false);
+    expect(finding!.autoFixable).toBe(true);
   });
 });
