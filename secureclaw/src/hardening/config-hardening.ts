@@ -46,16 +46,16 @@ export const configHardening: HardeningModule = {
       });
     }
 
-    if (ctx.config.sandbox?.mode !== 'all') {
+    if (ctx.config.tools?.exec?.host !== 'sandbox') {
       findings.push({
         id: 'SC-EXEC-003',
         severity: 'MEDIUM',
         category: 'execution',
-        title: 'Sandbox not set to all',
-        description: 'Sandbox mode is not set to "all". Not all commands run in a sandboxed environment.',
-        evidence: `sandbox.mode = "${ctx.config.sandbox?.mode ?? 'undefined'}"`,
-        remediation: 'Manually set sandbox.mode to "all" in your OpenClaw settings (not auto-fixable — key not in OpenClaw config schema)',
-        autoFixable: false,
+        title: 'Execution host not set to sandbox',
+        description: `tools.exec.host is "${ctx.config.tools?.exec?.host ?? 'undefined'}". Commands may run directly on the host without isolation.`,
+        evidence: `tools.exec.host = "${ctx.config.tools?.exec?.host ?? 'undefined'}"`,
+        remediation: 'Set tools.exec.host to "sandbox" (or run secureclaw harden). For full Docker isolation also set agents.defaults.sandbox.mode to "all".',
+        autoFixable: true,
         references: [],
         owaspAsi: 'ASI05',
       });
