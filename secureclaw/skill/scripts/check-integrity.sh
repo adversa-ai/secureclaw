@@ -4,10 +4,12 @@
 # https://adversa.ai
 set -euo pipefail
 
-OPENCLAW_DIR=""
-for dir in "$HOME/.openclaw" "$HOME/.moltbot" "$HOME/.clawdbot" "$HOME/clawd"; do
-  [ -d "$dir" ] && OPENCLAW_DIR="$dir" && break
-done
+OPENCLAW_DIR="${OPENCLAW_DIR:-}"
+if [ -z "$OPENCLAW_DIR" ]; then
+  for dir in "$HOME/.openclaw" "$HOME/.moltbot" "$HOME/.clawdbot" "$HOME/clawd"; do
+    [ -d "$dir" ] && OPENCLAW_DIR="$dir" && break
+  done
+fi
 [ -z "$OPENCLAW_DIR" ] && echo "❌ No OpenClaw found" && exit 1
 
 CONFIG="$OPENCLAW_DIR/openclaw.json"

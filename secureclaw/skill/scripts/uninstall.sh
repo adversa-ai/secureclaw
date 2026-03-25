@@ -8,10 +8,12 @@ echo "🔒 SecureClaw — Uninstaller"
 echo "============================"
 
 # Find OpenClaw
-OPENCLAW_DIR=""
-for dir in "$HOME/.openclaw" "$HOME/.moltbot" "$HOME/.clawdbot" "$HOME/clawd"; do
-  [ -d "$dir" ] && OPENCLAW_DIR="$dir" && break
-done
+OPENCLAW_DIR="${OPENCLAW_DIR:-}"
+if [ -z "$OPENCLAW_DIR" ]; then
+  for dir in "$HOME/.openclaw" "$HOME/.moltbot" "$HOME/.clawdbot" "$HOME/clawd"; do
+    [ -d "$dir" ] && OPENCLAW_DIR="$dir" && break
+  done
+fi
 [ -z "$OPENCLAW_DIR" ] && echo "❌ No OpenClaw installation found" && exit 1
 
 DEST="$OPENCLAW_DIR/skills/secureclaw"
