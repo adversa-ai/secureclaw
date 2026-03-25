@@ -24,6 +24,11 @@ if [ -f "$CONFIG" ]; then
   [ -n "$_ws" ] && WORKSPACE_DIR="$_ws"
 fi
 
+# Resolve this skill's own directory so self-scan exclusions work regardless of
+# install method (install.sh → secureclaw/, clawhub → secureclaw-skill/, etc.)
+SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SKILL_DIR="$(dirname "$SELF_DIR")"
+
 echo "🔒 SecureClaw Security Audit"
 echo "============================"
 echo "📁 $OPENCLAW_DIR"
@@ -44,11 +49,13 @@ chk() {
   fi
 }
 
-# Portable permission reader (Linux first, then macOS, with output validation)
+# Portable permission reader (Linux first, then macOS, with output validation).
+# stat -c '%a' on some Linux versions (e.g. Ubuntu 25.10) returns multi-line
+# filesystem stats instead of bare octal bits — strip all whitespace first.
 get_perms() {
   local p
-  p=$(stat -c '%a' "$1" 2>/dev/null) && [ ${#p} -le 4 ] && echo "$p" && return
-  p=$(stat -f '%Lp' "$1" 2>/dev/null) && [ ${#p} -le 4 ] && echo "$p" && return
+  p=$(stat -c '%a' "$1" 2>/dev/null | tr -d '[:space:]') && [ -n "$p" ] && [ ${#p} -le 4 ] && echo "$p" && return
+  p=$(stat -f '%Lp' "$1" 2>/dev/null | tr -d '[:space:]') && [ -n "$p" ] && [ ${#p} -le 4 ] && echo "$p" && return
   echo "?"
 }
 
@@ -106,7 +113,8 @@ DP=$(get_perms "$OPENCLAW_DIR")
   || chk H "ASI03|L4|privacy" "Directory permissions" FAIL "Permissions $DP (need 700)"
 
 LEAKED=$(grep -rl 'sk-ant-\|sk-proj-\|xoxb-\|xoxp-\|ghp_\|gho_\|AKIA' "$OPENCLAW_DIR" 2>/dev/null \
-  | grep -v '.env' | grep -v 'node_modules' | grep -v '.secureclaw/' | grep -v 'skills/secureclaw/' | head -5 || true)
+  | grep -v '.env' | grep -v 'node_modules' | grep -v '.secureclaw/' \
+  | grep -v "$SKILL_DIR" | grep -v '/secureclaw\.bak\.' | head -5 || true)
 [ -z "$LEAKED" ] \
   && chk H "ASI03|L4" "Plaintext key exposure" PASS \
   || chk H "ASI03|L4|privacy" "Plaintext key exposure" FAIL "Keys outside .env: $LEAKED"
@@ -133,7 +141,7 @@ RELAY=$(lsof -i :18790 2>/dev/null || ss -tlnp 2>/dev/null | grep 18790 || true)
 # ── Supply Chain (Security 101 #3, ASI04) [MAESTRO:L7] [NIST:poisoning] ──
 if [ -d "$OPENCLAW_DIR/skills" ]; then
   SUS=$(grep -rl 'curl.*|.*sh\|wget.*|.*bash\|eval(\|osascript.*display\|webhook\.site' "$OPENCLAW_DIR/skills" 2>/dev/null \
-    | grep -v 'skills/secureclaw/' | head -5 || true)
+    | grep -v "$SKILL_DIR" | grep -v '/secureclaw\.bak\.' | head -5 || true)
   [ -z "$SUS" ] \
     && chk M "ASI04|L7" "Skill safety scan" PASS \
     || chk M "ASI04|L7|poisoning" "Skill safety scan" FAIL "Suspicious patterns in: $SUS"
@@ -252,11 +260,14 @@ T=$((C+H+M+P)); S=0; [ $T -gt 0 ] && S=$(( (P*100)/T ))
 echo "📊 Security Score: $S/100"
 echo "   ✅ $P passed  🔴 $C critical  🟠 $H high  🟡 $M medium"
 echo "   Frameworks: OWASP ASI | MITRE ATLAS | CoSAI | CSA MAESTRO | NIST AI 100-2"
+if command -v openclaw >/dev/null 2>&1 && openclaw secureclaw status >/dev/null 2>&1; then
+  echo "   ℹ️  Score includes fixes applied by the SecureClaw plugin — not skill-only baseline"
+fi
 echo ""
 [ $C -gt 0 ] && echo "🚨 Fix critical issues now: bash $(dirname "$0")/quick-harden.sh"
 [ $C -eq 0 ] && [ $H -gt 0 ] && echo "⚠️  Fix high issues soon: bash $(dirname "$0")/quick-harden.sh"
 echo ""
-echo "Full runtime protection: openclaw plugins install secureclaw"
+echo "Full runtime protection: npm install @adversa/secureclaw && npx openclaw plugins install -l node_modules/@adversa/secureclaw"
 
 # Exit non-zero if critical issues found (for CI/automation)
 if [ $C -gt 0 ]; then
