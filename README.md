@@ -197,7 +197,13 @@ clawhub uninstall secureclaw-skill --workdir ~/.openclaw --dir skills
 
 > **Note:** If `OPENCLAW_STATE_DIR` is set in your environment and points to your OpenClaw directory, clawhub may detect the workspace automatically without flags.
 
-**Fix permissions after install:** clawhub installs files at `664` (world-readable, group-writable). SecureClaw includes a post-install hook (`hooks.postInstall` in `skill.json`) that clawhub runs automatically to correct this. If your clawhub version does not run hooks, fix permissions manually:
+**Fix permissions after install:** clawhub installs all files at `664` (world-readable, group-writable). Run the included permission fix script manually after installing:
+
+```sh
+bash ~/.openclaw/skills/secureclaw-skill/scripts/post-install.sh
+```
+
+Or run the equivalent commands manually:
 
 ```sh
 SKILL=~/.openclaw/skills/secureclaw-skill
