@@ -15,8 +15,11 @@ done
 [ -z "$OPENCLAW_DIR" ] && echo "❌ No OpenClaw installation found" && exit 1
 
 DEST="$OPENCLAW_DIR/skills/secureclaw"
+WORKSPACE_DEST="$OPENCLAW_DIR/workspace/skills/secureclaw"
+TOOLS_FILE="$OPENCLAW_DIR/workspace/TOOLS.md"
+AGENTS_FILE="$OPENCLAW_DIR/workspace/AGENTS.md"
 
-if [ ! -d "$DEST" ]; then
+if [ ! -d "$DEST" ] && [ ! -d "$WORKSPACE_DEST" ]; then
   echo "ℹ️  SecureClaw skill not installed at $DEST"
   exit 0
 fi
@@ -25,8 +28,10 @@ fi
 VER="unknown"
 if [ -f "$DEST/skill.json" ]; then
   VER=$(grep '"version"' "$DEST/skill.json" | head -1 | sed 's/.*"version".*"\([^"]*\)".*/\1/')
+elif [ -f "$WORKSPACE_DEST/skill.json" ]; then
+  VER=$(grep '"version"' "$WORKSPACE_DEST/skill.json" | head -1 | sed 's/.*"version".*"\([^"]*\)".*/\1/')
 fi
-echo "📁 Found: SecureClaw v$VER at $DEST"
+echo "📁 Found: SecureClaw v$VER"
 
 # Check for --force flag
 FORCE="${1:-}"
@@ -34,20 +39,32 @@ if [ "$FORCE" != "--force" ]; then
   echo ""
   echo "This will remove:"
   echo "  • $DEST/ (skill files)"
-  echo "  • $OPENCLAW_DIR/.secureclaw/baselines/ (integrity baselines)"
+  [ -d "$WORKSPACE_DEST" ] && echo "  • $WORKSPACE_DEST/ (workspace install)"
+  [ -d "$OPENCLAW_DIR/.secureclaw/baselines" ] && echo "  • $OPENCLAW_DIR/.secureclaw/baselines/ (integrity baselines)"
+  BACKUP_COUNT=$(ls -d "$DEST".bak.* 2>/dev/null | wc -l | tr -d ' ')
+  [ "$BACKUP_COUNT" -gt 0 ] && echo "  • $BACKUP_COUNT backup director(ies) ($DEST.bak.*)"
+  grep -q "## SecureClaw Security Skill" "$TOOLS_FILE" 2>/dev/null && echo "  • SecureClaw block in TOOLS.md"
+  grep -q "SecureClaw Security Skill" "$AGENTS_FILE" 2>/dev/null && echo "  • SecureClaw block in AGENTS.md"
   echo ""
   echo "This will NOT remove:"
   echo "  • SecureClaw directives added to SOUL.md (manual removal needed)"
-  echo "  • Backup directories ($DEST.bak.*)"
   echo "  • The SecureClaw plugin (if installed via openclaw plugins)"
   echo ""
   echo "Run with --force to proceed:  bash $0 --force"
   exit 0
 fi
 
-# Remove skill directory
-echo "🗑️  Removing $DEST/"
-rm -rf "$DEST"
+# Remove primary skill directory
+if [ -d "$DEST" ]; then
+  echo "🗑️  Removing $DEST/"
+  rm -rf "$DEST"
+fi
+
+# Remove workspace install
+if [ -d "$WORKSPACE_DEST" ]; then
+  echo "🗑️  Removing workspace install $WORKSPACE_DEST/"
+  rm -rf "$WORKSPACE_DEST"
+fi
 
 # Remove baselines
 if [ -d "$OPENCLAW_DIR/.secureclaw/baselines" ]; then
@@ -67,11 +84,54 @@ if [ "$BACKUP_COUNT" -gt 0 ]; then
   rm -rf "$DEST".bak.*
 fi
 
+# Remove SecureClaw block from TOOLS.md.
+# Walk back from "## SecureClaw Security Skill" over blank lines, then include
+# the preceding line if it is exactly "---" (the separator our installer adds).
+if [ -f "$TOOLS_FILE" ] && grep -q "## SecureClaw Security Skill" "$TOOLS_FILE" 2>/dev/null; then
+  echo "📝 Removing SecureClaw entry from TOOLS.md"
+  LINE=$(grep -n "## SecureClaw Security Skill" "$TOOLS_FILE" | head -1 | cut -d: -f1)
+  START=$LINE
+  while [ "$START" -gt 1 ]; do
+    PREV=$((START-1))
+    PREVLINE=$(sed -n "${PREV}p" "$TOOLS_FILE")
+    if [ -z "$PREVLINE" ]; then
+      START=$PREV
+    else
+      break
+    fi
+  done
+  # Also consume the immediately preceding "---" separator if present
+  if [ "$START" -gt 1 ]; then
+    PREVLINE=$(sed -n "$((START-1))p" "$TOOLS_FILE")
+    [ "$PREVLINE" = "---" ] && START=$((START-1))
+  fi
+  head -n $((START-1)) "$TOOLS_FILE" > "${TOOLS_FILE}.tmp" && mv "${TOOLS_FILE}.tmp" "$TOOLS_FILE"
+fi
+
+# Remove SecureClaw block from AGENTS.md
+# The installer appends the block starting with "### SecureClaw Security Skill",
+# preceded by a blank line. Truncate from there to EOF.
+if [ -f "$AGENTS_FILE" ] && grep -q "SecureClaw Security Skill" "$AGENTS_FILE" 2>/dev/null; then
+  echo "📝 Removing SecureClaw entry from AGENTS.md"
+  LINE=$(grep -n "SecureClaw Security Skill" "$AGENTS_FILE" | head -1 | cut -d: -f1)
+  START=$LINE
+  while [ "$START" -gt 1 ]; do
+    PREV=$((START-1))
+    PREVLINE=$(sed -n "${PREV}p" "$AGENTS_FILE")
+    if [ -z "$PREVLINE" ]; then
+      START=$PREV
+    else
+      break
+    fi
+  done
+  head -n $((START-1)) "$AGENTS_FILE" > "${AGENTS_FILE}.tmp" && mv "${AGENTS_FILE}.tmp" "$AGENTS_FILE"
+fi
+
 echo ""
 echo "✅ SecureClaw skill removed"
 echo ""
 echo "⚠️  Manual steps:"
-echo "  1. Edit $OPENCLAW_DIR/SOUL.md and remove the"
+echo "  1. Edit $OPENCLAW_DIR/workspace/SOUL.md and remove the"
 echo "     '## SecureClaw Privacy Directives' and"
 echo "     '## SecureClaw Injection Awareness' sections if present"
 echo "  2. Restart your agent to clear SKILL.md from context"
