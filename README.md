@@ -6,7 +6,7 @@ Audit, Hardening and Runtime Security for OpenClaw.
 
 Developed by [Adversa AI](https://adversa.ai) -- Agentic AI Security and Red Teaming Pioneers.
 
-56 audit checks. 15 behavioral rules. 9 scripts. 4 pattern databases. 7 security frameworks mapped.
+56 audit checks. 15 behavioral rules. 10 scripts. 4 pattern databases. 7 security frameworks mapped.
 
 10/10 OWASP ASI | 10/14 MITRE ATLAS | 4/4 MITRE OpenClaw Cases | 3/3 CoSAI Principles | CSA Singapore | 6/7 CSA MAESTRO Layers | 4/4 NIST AI 100-2 GenAI Types
 
@@ -96,7 +96,7 @@ A full OpenClaw plugin with 56 audit checks, 5 hardening modules, 3 background m
 A standalone security skill that works without the plugin. It consists of:
 
 - **SKILL.md** -- 15 behavioral rules loaded into the agent's context (~1,230 tokens)
-- **9 bash scripts** -- audit, harden, scan, integrity check, privacy check, advisory feed, emergency response, install, uninstall
+- **10 bash scripts** -- audit, harden, scan, integrity check, privacy check, advisory feed, emergency response, install, uninstall, post-install (permissions fix)
 - **4 JSON pattern databases** -- injection patterns, dangerous commands, privacy rules, supply chain indicators
 
 The skill is designed to be lightweight. All detection logic runs as external bash processes that consume zero LLM tokens. The agent only carries the 15 rules in its context window; everything else executes outside the model.
@@ -119,7 +119,7 @@ secureclaw/
     skill.json                  Metadata + OWASP ASI mapping
     checksums.json              SHA256 hashes for all skill files
     configs/                    4 JSON pattern databases
-    scripts/                    9 bash scripts
+    scripts/                    10 bash scripts
   openclaw.plugin.json          Plugin manifest
   package.json                  npm package metadata
 ```
@@ -149,7 +149,7 @@ git clone https://github.com/adversa-ai/secureclaw.git
 bash secureclaw/secureclaw/skill/scripts/install.sh
 ```
 
-This installs the 15 behavioral rules, 9 scripts, and 4 pattern databases to your agent's skills directory. If a workspace directory exists (`~/.openclaw/workspace/`), the installer also copies the skill there and registers it in `AGENTS.md` and `TOOLS.md` for automatic agent discovery.
+This installs the 15 behavioral rules, 10 scripts, and 4 pattern databases to your agent's skills directory. If a workspace directory exists (`~/.openclaw/workspace/`), the installer also copies the skill there and registers it in `AGENTS.md` and `TOOLS.md` for automatic agent discovery.
 
 ### Option B: Plugin from npm
 
@@ -761,9 +761,41 @@ Apply hardening across 5 modules (gateway, credentials, config, Docker, network)
 
 Display current security posture: score, monitor status (credential watch, memory integrity, cost tracking), and recent alert count.
 
-### npx openclaw secureclaw scan-skill \<name\>
+### npx openclaw secureclaw scan-skill \<name-or-path\>
 
 Scan a specific skill for malicious patterns before installation. Checks for dynamic execution, credential access, exfiltration endpoints, IOC hash matches, and typosquatting.
+
+Pass either a skill name (resolved against `workspace/skills/` first, then `skills/`) or an absolute path to the skill directory:
+
+```sh
+npx openclaw secureclaw scan-skill mysuppliedskill
+npx openclaw secureclaw scan-skill /absolute/path/to/skill
+```
+
+### npx openclaw secureclaw monitor \<start|stop|status\>
+
+Start, stop, or query the three background security monitors. Without flags all three monitors are affected. Use `--credential`, `--memory`, or `--cost` to target a single monitor.
+
+```sh
+npx openclaw secureclaw monitor start
+npx openclaw secureclaw monitor status
+npx openclaw secureclaw monitor stop --cost
+```
+
+`status` prints whether each monitor is running and its last three alerts.
+
+### npx openclaw secureclaw config \<set|get|list\>
+
+Read and write SecureClaw configuration directly in `openclaw.json`, bypassing OpenClaw's config validator (which rejects unknown namespaces). Values are auto-typed: `"true"`/`"false"` become booleans, numeric strings become numbers.
+
+```sh
+npx openclaw secureclaw config list
+npx openclaw secureclaw config get failureMode
+npx openclaw secureclaw config set failureMode safe_mode
+npx openclaw secureclaw config set cost.hourlyLimitUsd 5
+```
+
+Accepted keys: `failureMode`, `riskProfile`, `autoHarden`, `cost.hourlyLimitUsd`, `cost.dailyLimitUsd`, `cost.monthlyLimitUsd`, `cost.circuitBreakerEnabled`.
 
 ### npx openclaw secureclaw cost-report
 
