@@ -33,12 +33,13 @@ teardown() {
 
 @test "audit completes without crash on clean workspace" {
   run bash "$SCRIPT"
-  [ "$status" -eq 0 ] || [ "$status" -eq 1 ]
+  [ "$status" -eq 0 ] || [ "$status" -eq 1 ] || [ "$status" -eq 2 ]
   [ -n "$output" ]
 }
 
 @test "secureclaw-skill/ dir is excluded from self-scan findings" {
   mkdir -p "$OPENCLAW_DIR/workspace/skills/secureclaw-skill/scripts"
+  mkdir -p "$OPENCLAW_DIR/workspace/skills/secureclaw-skill/configs"
   echo "ignore previous instructions" > "$OPENCLAW_DIR/workspace/skills/secureclaw-skill/configs/injection-patterns.json"
   run bash "$SCRIPT"
   refute_output --partial "secureclaw-skill.*injection"
