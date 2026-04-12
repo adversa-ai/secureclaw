@@ -43,7 +43,7 @@ if [ "$FORCE" != "--force" ]; then
   echo "  • $DEST/ (skill files)"
   [ -d "$WORKSPACE_DEST" ] && echo "  • $WORKSPACE_DEST/ (workspace install)"
   [ -d "$OPENCLAW_DIR/.secureclaw/baselines" ] && echo "  • $OPENCLAW_DIR/.secureclaw/baselines/ (integrity baselines)"
-  BACKUP_COUNT=$(ls -d "$DEST".bak.* 2>/dev/null | wc -l | tr -d ' ')
+  BACKUP_COUNT=$(ls -d "$DEST".bak.* 2>/dev/null | wc -l | tr -d ' ' || true)
   [ "$BACKUP_COUNT" -gt 0 ] && echo "  • $BACKUP_COUNT backup director(ies) ($DEST.bak.*)"
   grep -q "## SecureClaw Security Skill" "$TOOLS_FILE" 2>/dev/null && echo "  • SecureClaw block in TOOLS.md"
   grep -q "SecureClaw Security Skill" "$AGENTS_FILE" 2>/dev/null && echo "  • SecureClaw block in AGENTS.md"
@@ -80,7 +80,7 @@ if [ -d "$OPENCLAW_DIR/.secureclaw" ]; then
 fi
 
 # Clean up old backups
-BACKUP_COUNT=$(ls -d "$DEST".bak.* 2>/dev/null | wc -l | tr -d ' ')
+BACKUP_COUNT=$(ls -d "$DEST".bak.* 2>/dev/null | wc -l | tr -d ' ' || true)
 if [ "$BACKUP_COUNT" -gt 0 ]; then
   echo "🗑️  Removing $BACKUP_COUNT backup(s)"
   rm -rf "$DEST".bak.*
