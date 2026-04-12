@@ -76,8 +76,7 @@ if [ -d "$OPENCLAW_DIR/workspace" ]; then
   if [ -f "$TOOLS_FILE" ] && ! grep -q "## SecureClaw Security Skill" "$TOOLS_FILE" 2>/dev/null; then
     cat >> "$TOOLS_FILE" << 'TOOLS_EOF'
 
----
-
+<!-- Secureclaw -->
 ## SecureClaw Security Skill (v2.2.0)
 
 Security hardening skill by Adversa AI. 15 core rules, 9 scripts, 4 pattern databases.
@@ -99,6 +98,7 @@ bash skills/secureclaw/scripts/scan-skills.sh          # Supply chain scan
 bash skills/secureclaw/scripts/check-advisories.sh     # Vulnerability advisories
 bash skills/secureclaw/scripts/emergency-response.sh   # Incident response
 ```
+<!-- Secureclaw:end -->
 TOOLS_EOF
     echo "📝 Registered in TOOLS.md"
   fi
@@ -108,6 +108,7 @@ TOOLS_EOF
   if [ -f "$AGENTS_FILE" ] && ! grep -q "SecureClaw Security Skill" "$AGENTS_FILE" 2>/dev/null; then
     cat >> "$AGENTS_FILE" << 'AGENTS_EOF'
 
+<!-- Secureclaw -->
 ### SecureClaw Security Skill (v2.2.0) - ALWAYS ACTIVE
 
 Your workspace has the SecureClaw security skill installed. Follow the 15 core security rules in `skills/secureclaw/SKILL.md` at all times.
@@ -119,6 +120,7 @@ SecureClaw protects against: prompt injection, credential exposure, supply chain
 **Apply hardening:** `bash skills/secureclaw/scripts/quick-harden.sh`
 
 See `TOOLS.md` for complete SecureClaw reference and available scripts.
+<!-- Secureclaw:end -->
 AGENTS_EOF
     echo "📝 Registered in AGENTS.md"
   fi

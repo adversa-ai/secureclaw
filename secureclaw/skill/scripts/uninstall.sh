@@ -52,6 +52,7 @@ if [ "$FORCE" != "--force" ]; then
   echo "  • SecureClaw directives added to SOUL.md (manual removal needed)"
   echo "  • The SecureClaw plugin (if installed via openclaw plugins)"
   echo ""
+  echo "WARNING: this action is irreversible and cannot be undone."
   echo "Run with --force to proceed:  bash $0 --force"
   exit 0
 fi
@@ -87,46 +88,15 @@ if [ "$BACKUP_COUNT" -gt 0 ]; then
 fi
 
 # Remove SecureClaw block from TOOLS.md.
-# Walk back from "## SecureClaw Security Skill" over blank lines, then include
-# the preceding line if it is exactly "---" (the separator our installer adds).
-if [ -f "$TOOLS_FILE" ] && grep -q "## SecureClaw Security Skill" "$TOOLS_FILE" 2>/dev/null; then
+if [ -f "$TOOLS_FILE" ] && grep -q "Secureclaw" "$TOOLS_FILE" 2>/dev/null; then
   echo "📝 Removing SecureClaw entry from TOOLS.md"
-  LINE=$(grep -n "## SecureClaw Security Skill" "$TOOLS_FILE" | head -1 | cut -d: -f1)
-  START=$LINE
-  while [ "$START" -gt 1 ]; do
-    PREV=$((START-1))
-    PREVLINE=$(sed -n "${PREV}p" "$TOOLS_FILE")
-    if [ -z "$PREVLINE" ]; then
-      START=$PREV
-    else
-      break
-    fi
-  done
-  # Also consume the immediately preceding "---" separator if present
-  if [ "$START" -gt 1 ]; then
-    PREVLINE=$(sed -n "$((START-1))p" "$TOOLS_FILE")
-    [ "$PREVLINE" = "---" ] && START=$((START-1))
-  fi
-  head -n $((START-1)) "$TOOLS_FILE" > "${TOOLS_FILE}.tmp" && mv "${TOOLS_FILE}.tmp" "$TOOLS_FILE"
+  sed -i '/<!-- Secureclaw -->/,/<!-- Secureclaw:end -->/d' "$TOOLS_FILE"
 fi
 
 # Remove SecureClaw block from AGENTS.md
-# The installer appends the block starting with "### SecureClaw Security Skill",
-# preceded by a blank line. Truncate from there to EOF.
-if [ -f "$AGENTS_FILE" ] && grep -q "SecureClaw Security Skill" "$AGENTS_FILE" 2>/dev/null; then
+if [ -f "$AGENTS_FILE" ] && grep -q "Secureclaw" "$AGENTS_FILE" 2>/dev/null; then
   echo "📝 Removing SecureClaw entry from AGENTS.md"
-  LINE=$(grep -n "SecureClaw Security Skill" "$AGENTS_FILE" | head -1 | cut -d: -f1)
-  START=$LINE
-  while [ "$START" -gt 1 ]; do
-    PREV=$((START-1))
-    PREVLINE=$(sed -n "${PREV}p" "$AGENTS_FILE")
-    if [ -z "$PREVLINE" ]; then
-      START=$PREV
-    else
-      break
-    fi
-  done
-  head -n $((START-1)) "$AGENTS_FILE" > "${AGENTS_FILE}.tmp" && mv "${AGENTS_FILE}.tmp" "$AGENTS_FILE"
+  sed -i '/<!-- Secureclaw -->/,/<!-- Secureclaw:end -->/d' "$AGENTS_FILE"
 fi
 
 echo ""

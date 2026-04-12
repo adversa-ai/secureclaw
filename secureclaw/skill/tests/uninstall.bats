@@ -20,14 +20,19 @@ setup() {
   # Add secureclaw blocks to TOOLS.md and AGENTS.md
   cat >> "$OPENCLAW_DIR/workspace/TOOLS.md" <<'EOF'
 
+<!-- Secureclaw -->
 ## SecureClaw Security Skill
 Security audit and hardening for OpenClaw.
+<!-- Secureclaw:end -->
 EOF
   cat >> "$OPENCLAW_DIR/workspace/AGENTS.md" <<'EOF'
 
+<!-- Secureclaw -->
 ## SecureClaw Security Skill
 Security monitor.
+<!-- Secureclaw:end -->
 EOF
+
 }
 
 teardown() {
@@ -58,4 +63,16 @@ teardown() {
   [ "$status" -eq 0 ] || [ "$status" -eq 1 ] || [ "$status" -eq 2 ]
   run grep "SecureClaw Security Skill" "$OPENCLAW_DIR/workspace/AGENTS.md"
   [ "$status" -ne 0 ]
+}
+
+@test "dry-run shows irreversible warning" {
+  run bash "$SCRIPT"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"WARNING: this action is irreversible"* ]]
+}
+
+@test "--force does not show irreversible warning" {
+  run bash "$SCRIPT" --force
+  [ "$status" -eq 0 ] || [ "$status" -eq 1 ] || [ "$status" -eq 2 ]
+  [[ "$output" != *"WARNING: this action is irreversible"* ]]
 }
