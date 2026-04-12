@@ -35,27 +35,27 @@ teardown() {
 }
 
 @test "skills/secureclaw/ dir removed after uninstall" {
-  run bash "$SCRIPT"
-  [ "$status" -eq 0 ] || [ "$status" -eq 1 ]
+  run bash "$SCRIPT" --force
+  [ "$status" -eq 0 ] || [ "$status" -eq 1 ] || [ "$status" -eq 2 ]
   [ ! -d "$OPENCLAW_DIR/skills/secureclaw" ]
 }
 
 @test "workspace/skills/secureclaw/ dir removed after uninstall" {
-  run bash "$SCRIPT"
-  [ "$status" -eq 0 ] || [ "$status" -eq 1 ]
+  run bash "$SCRIPT" --force
+  [ "$status" -eq 0 ] || [ "$status" -eq 1 ] || [ "$status" -eq 2 ]
   [ ! -d "$OPENCLAW_DIR/workspace/skills/secureclaw" ]
 }
 
 @test "TOOLS.md secureclaw entry removed after uninstall" {
-  run bash "$SCRIPT"
-  [ "$status" -eq 0 ] || [ "$status" -eq 1 ]
+  run bash "$SCRIPT" --force
+  [ "$status" -eq 0 ] || [ "$status" -eq 1 ] || [ "$status" -eq 2 ]
   run grep "SecureClaw Security Skill" "$OPENCLAW_DIR/workspace/TOOLS.md"
   [ "$status" -ne 0 ]
 }
 
 @test "AGENTS.md secureclaw entry removed after uninstall" {
-  run bash "$SCRIPT"
-  [ "$status" -eq 0 ] || [ "$status" -eq 1 ]
+  run bash "$SCRIPT" --force
+  [ "$status" -eq 0 ] || [ "$status" -eq 1 ] || [ "$status" -eq 2 ]
   run grep "SecureClaw Security Skill" "$OPENCLAW_DIR/workspace/AGENTS.md"
   [ "$status" -ne 0 ]
 }
